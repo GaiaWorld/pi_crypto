@@ -7,4 +7,3 @@ authors = ["yineng <dev@dev.com>"]
 rust-crypto = "0.2.36"
 siphasher = "0.1.1"
 pi_math = { path = "../pi_math" }
-pi_vm = { path = "../pi_vm"}
