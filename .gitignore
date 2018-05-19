@@ -2,6 +2,3 @@
 /target
 **/*.rs.bk
 Cargo.lock
-.depend
-/scripts
-/cfg
