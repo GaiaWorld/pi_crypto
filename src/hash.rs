@@ -112,7 +112,7 @@ pub fn ripemd160(input: &[u8]) -> H160 {
 
 /// Sha3-Keccak256
 #[inline]
-pub fn sha256(input: &[u8]) -> H256 {
+pub fn keccak256(input: &[u8]) -> H256 {
 	let mut result = H256::default();
 	let mut hasher = Sha3::keccak256();
 	hasher.input(input);
@@ -158,7 +158,7 @@ pub fn checksum(data: &[u8]) -> H32 {
 
 #[cfg(test)]
 mod tests {
-	use super::{ripemd160, sha256, dhash160, dhash256, siphash24, checksum};
+	use super::{ripemd160, keccak256, dhash160, dhash256, siphash24, checksum};
 	#[test]
 	fn test_ripemd160() {
 		let expected = "108f07b8382412612c048d07d13f814118445acd".into();
