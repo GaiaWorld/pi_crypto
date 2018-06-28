@@ -167,13 +167,13 @@ mod tests {
 	}
 
 	#[test]
-	fn test_sha256() {
+	fn test_keccak256() {
 		let expected = "1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8".into();
-		let result = sha256(b"hello");
+		let result = keccak256(b"hello");
 		assert_eq!(result, expected);
 
         let expected = "7624778dedc75f8b322b9fa1632a610d40b85e106c7d9bf0e743a9ce291b9c6f".into();
-		let result = sha256(b"hi");
+		let result = keccak256(b"hi");
 		assert_eq!(result, expected);
 	}
 
