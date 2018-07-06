@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["yineng <dev@dev.com>"]
 
 [dependencies]
+libc = "*"
 rust-crypto = "0.2.36"
 siphasher = "0.1.1"
 pi_math = { path = "../pi_math" }
