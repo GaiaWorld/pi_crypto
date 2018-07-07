@@ -38,13 +38,25 @@ fn test_bls() {
         assert!(copy_sec_key.is_some());
         assert!(bls_secret_key_is_equal(sec_key.as_ref().unwrap(), copy_sec_key.as_ref().unwrap()));
 
-        let pub_key = bls_get_public_key(sec_key.as_ref().unwrap());
+        let mut secs = BlsSecKeyVec::new(3);
+        bls_add_secret_key_to_vec(&mut secs, sec_key.as_ref().unwrap());
+        let sec0 = bls_hash_to_secret_key("333".to_string().into_bytes());
+        bls_add_secret_key_to_vec(&mut secs, sec0.as_ref().unwrap());
+        let sec1 = bls_hash_to_secret_key("777".to_string().into_bytes());
+        bls_add_secret_key_to_vec(&mut secs, sec1.as_ref().unwrap());
+
+        let pub_key = bls_get_public_key(bls_get_secret_key_from_vec(&secs, 0).as_ref().unwrap());
         assert!(pub_key.is_some());
         let pub_key_s = bls_public_key_serialize(64, pub_key.as_ref().unwrap());
         assert!(pub_key_s.is_some());
         let copy_pub_key = bls_public_key_deserialize(pub_key_s.unwrap());
         assert!(copy_pub_key.is_some());
         assert!(bls_public_key_is_equal(pub_key.as_ref().unwrap(), copy_pub_key.as_ref().unwrap()));
+
+        let mut pubs = BlsPubKeyVec::new(3);
+        bls_add_public_key_to_vec(&mut pubs, pub_key.as_ref().unwrap());
+        bls_add_public_key_to_vec(&mut pubs, bls_get_public_key(bls_get_secret_key_from_vec(&secs, 1).as_ref().unwrap()).as_ref().unwrap());
+        bls_add_public_key_to_vec(&mut pubs, bls_get_public_key(bls_get_secret_key_from_vec(&secs, 2).as_ref().unwrap()).as_ref().unwrap());
 
         let sig = bls_get_pop(sec_key.as_ref().unwrap());
         assert!(sig.is_some());
@@ -80,6 +92,23 @@ fn test_bls() {
         let msk = bls_secret_key_recover(&sec_vec, &id_vec, 3);
         assert!(msk.is_some());
         assert!(bls_secret_key_is_equal(msk.as_ref().unwrap(), sec_key.as_ref().unwrap()));
+
+        let mpk = bls_get_public_key_vec(&pubs);
+        assert!(mpk.is_some());
+        let pub_key0 = bls_public_key_share(mpk.as_ref().unwrap(), 3, &id0);
+        let pub_key1 = bls_public_key_share(mpk.as_ref().unwrap(), 3, &id1);
+        let pub_key2 = bls_public_key_share(mpk.as_ref().unwrap(), 3, &id2);
+        let pub_key3 = bls_public_key_share(mpk.as_ref().unwrap(), 3, &id3);
+        let pub_key4 = bls_public_key_share(mpk.as_ref().unwrap(), 3, &id4);
+
+        let mut pub_vec = BlsPubKeyVec::new(3);
+        bls_add_public_key_to_vec(&mut pub_vec, pub_key0.as_ref().unwrap());
+        bls_add_public_key_to_vec(&mut pub_vec, pub_key1.as_ref().unwrap());
+        bls_add_public_key_to_vec(&mut pub_vec, pub_key2.as_ref().unwrap());
+
+        let mpk0 = bls_public_key_recover(&pub_vec, &id_vec, 3);
+        assert!(mpk0.is_some());
+        assert!(bls_public_key_is_equal(mpk0.as_ref().unwrap(), mpk.as_ref().unwrap()));
 
         let bin = Arc::new(vec![10, 10, 10, 10, 10, 10]);
         let sig = bls_sign(sec_key.as_ref().unwrap(), bin.clone());

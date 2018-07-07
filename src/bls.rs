@@ -37,10 +37,17 @@ extern "C" {
     fn blscSignatureAdd(sig: *const c_void, rhs: *const c_void);
     fn blscSecretKeyShare(msk: *const c_void, k: size_t, blsId: *const c_void) -> *const c_void;
     fn blscPublicKeyShare(mpk: *const c_void, k: size_t, blsId: *const c_void) -> *const c_void;
+    fn blscGetIdFromVec(blsIdVec: *const c_void, index: size_t) -> *const c_void;
     fn blscAddIdToVec(blsIdVec: *const c_void, k: size_t, blsId: *const c_void) -> *const c_void;
+    fn blscGetSecretKeyFromVec(secKeyVec: *const c_void, index: size_t) -> *const c_void;
     fn blscAddSecretKeyToVec(secKeyVec: *const c_void, k: size_t, secKey: *const c_void) -> *const c_void;
+    fn blscGetSecretKeyVec(secKeyVec: *const c_void) -> *const c_void;
+    fn blscGetPublicKeyFromVec(pubKeyVec: *const c_void, index: size_t) -> *const c_void;
     fn blscAddPublicKeyToVec(pubKeyVec: *const c_void, k: size_t, pubKey: *const c_void) -> *const c_void;
+    fn blscGetPublicKeyVec(pubKeyVec: *const c_void) -> *const c_void;
+    fn blscGetSignatureFromVec(sigIdVec: *const c_void, index: size_t) -> *const c_void;
     fn blscAddSignatureToVec(sigVec: *const c_void, k: size_t, sig: *const c_void) -> *const c_void;
+    fn blscGetSignatureVec(sigVec: *const c_void) -> *const c_void;
     fn blscSecretKeyRecover(secKeyVec: *const c_void, blsIdVec: *const c_void, n: size_t) -> *const c_void;
     fn blscPublicKeyRecover(pubKeyVec: *const c_void, blsIdVec: *const c_void, n: size_t) -> *const c_void;
     fn blscSignatureRecover(sigVec: *const c_void, blsIdVec: *const c_void, n: size_t) -> *const c_void;
@@ -58,35 +65,43 @@ pub enum Curve {
 	MclBls12CurveFp381,
 }
 
-pub struct BlsId(*const c_void);
+pub struct BlsId(*const c_void, bool);
 
 impl Drop for BlsId {
     fn drop(&mut self) {
-        unsafe { blscFree(self.0) }
+        if self.1 {
+            unsafe { blscFree(self.0) }
+        }
     }
 }
 
-pub struct BlsSecretKey(*const c_void);
+pub struct BlsSecretKey(*const c_void, bool);
 
 impl Drop for BlsSecretKey {
     fn drop(&mut self) {
-        unsafe { blscFree(self.0) }
+        if self.1 {
+            unsafe { blscFree(self.0) }
+        }
     }
 }
 
-pub struct BlsPublicKey(*const c_void);
+pub struct BlsPublicKey(*const c_void, bool);
 
 impl Drop for BlsPublicKey {
     fn drop(&mut self) {
-        unsafe { blscFree(self.0) }
+        if self.1 {
+            unsafe { blscFree(self.0) }
+        }
     }
 }
 
-pub struct BlsSignature(*const c_void);
+pub struct BlsSignature(*const c_void, bool);
 
 impl Drop for BlsSignature {
     fn drop(&mut self) {
-        unsafe { blscFree(self.0) }
+        if self.1 {
+            unsafe { blscFree(self.0) }
+        }
     }
 }
 
@@ -198,13 +213,13 @@ pub fn bls_get_field_order(max_buf_size: usize) -> Option<String> {
 
 pub fn bls_get_generator_of_g2() -> BlsPublicKey {
     unsafe {
-        BlsPublicKey(blscGetGeneratorOfG2())
+        BlsPublicKey(blscGetGeneratorOfG2(), true)
     }
 }
 
 pub fn bls_id_set_int(x: i32) -> BlsId {
     unsafe {
-        BlsId(blscIdSetInt(x))
+        BlsId(blscIdSetInt(x), true)
     }
 }
 
@@ -215,7 +230,7 @@ pub fn bls_id_set_dec_str(buf: String) -> Option<BlsId> {
         if ptr.is_null() {
             return None;
         }
-        Some(BlsId(ptr))
+        Some(BlsId(ptr, true))
     }
 }
 
@@ -226,7 +241,7 @@ pub fn bls_id_set_hex_str(buf: String) -> Option<BlsId> {
         if ptr.is_null() {
             return None;
         }
-        Some(BlsId(ptr))
+        Some(BlsId(ptr, true))
     }
 }
 
@@ -278,7 +293,7 @@ pub fn bls_hash_to_secret_key(buf: Vec<u8>) -> Option<BlsSecretKey> {
         if ptr.is_null() {
             return None;
         }
-        Some(BlsSecretKey(ptr))
+        Some(BlsSecretKey(ptr, true))
     }
 }
 
@@ -288,7 +303,7 @@ pub fn bls_get_public_key(sec_key: &BlsSecretKey) -> Option<BlsPublicKey> {
         if ptr.is_null() {
             return None;
         }
-        Some(BlsPublicKey(ptr))
+        Some(BlsPublicKey(ptr, true))
     }
 }
 
@@ -298,7 +313,7 @@ pub fn bls_get_pop(sec_key: &BlsSecretKey) -> Option<BlsSignature> {
         if ptr.is_null() {
             return None;
         }
-        Some(BlsSignature(ptr))
+        Some(BlsSignature(ptr, true))
     }
 }
 
@@ -372,7 +387,7 @@ pub fn bls_id_deserialize(buf: Vec<u8>) -> Option<BlsId> {
         if ptr.is_null() {
             return None;
         }
-        Some(BlsId(ptr))
+        Some(BlsId(ptr, false))
     }
 }
 
@@ -382,7 +397,7 @@ pub fn bls_secret_key_deserialize(buf: Vec<u8>) -> Option<BlsSecretKey> {
         if ptr.is_null() {
             return None;
         }
-        Some(BlsSecretKey(ptr))
+        Some(BlsSecretKey(ptr, false))
     }
 }
 
@@ -392,7 +407,7 @@ pub fn bls_public_key_deserialize(buf: Vec<u8>) -> Option<BlsPublicKey> {
         if ptr.is_null() {
             return None;
         }
-        Some(BlsPublicKey(ptr))
+        Some(BlsPublicKey(ptr, false))
     }
 }
 
@@ -402,7 +417,7 @@ pub fn bls_signature_deserialize(buf: Vec<u8>) -> Option<BlsSignature> {
         if ptr.is_null() {
             return None;
         }
-        Some(BlsSignature(ptr))
+        Some(BlsSignature(ptr, false))
     }
 }
 
@@ -460,7 +475,7 @@ pub fn bls_secret_key_share(src_key: &BlsSecretKey, k: usize, id: &BlsId) -> Opt
         if ptr.is_null() {
             return None;
         }
-        Some(BlsSecretKey(ptr))
+        Some(BlsSecretKey(ptr, true))
     }
 }
 
@@ -470,7 +485,17 @@ pub fn bls_public_key_share(src_key: &BlsPublicKey, k: usize, id: &BlsId) -> Opt
         if ptr.is_null() {
             return None;
         }
-        Some(BlsPublicKey(ptr))
+        Some(BlsPublicKey(ptr, true))
+    }
+}
+
+pub fn bls_get_id_from_vec(vec: &BlsIdVec, index: usize) -> Option<BlsId> {
+    unsafe {
+        let ptr = blscGetIdFromVec(vec.0, index);
+        if ptr.is_null() {
+            return None;
+        }
+        Some(BlsId(ptr, false))
     }
 }
 
@@ -484,6 +509,16 @@ pub fn bls_add_id_to_vec(vec: &mut BlsIdVec, id: &BlsId) {
     }
 }
 
+pub fn bls_get_secret_key_from_vec(vec: &BlsSecKeyVec, index: usize) -> Option<BlsSecretKey> {
+    unsafe {
+        let ptr = blscGetSecretKeyFromVec(vec.0, index);
+        if ptr.is_null() {
+            return None;
+        }
+        Some(BlsSecretKey(ptr, false))
+    }
+}
+
 pub fn bls_add_secret_key_to_vec(vec: &mut BlsSecKeyVec, sec_key: &BlsSecretKey) {
     unsafe {
         let ptr = blscAddSecretKeyToVec(vec.0, vec.1, sec_key.0);
@@ -491,6 +526,25 @@ pub fn bls_add_secret_key_to_vec(vec: &mut BlsSecKeyVec, sec_key: &BlsSecretKey)
             return;
         }
         vec.0 = ptr;
+    }
+}
+
+pub fn bls_get_secret_key_vec(vec: &BlsSecKeyVec) -> Option<BlsSecretKey> {
+    unsafe {
+        if vec.0.is_null() {
+            return None;
+        }
+        Some(BlsSecretKey(blscGetSecretKeyVec(vec.0), false))
+    }
+}
+
+pub fn bls_get_public_key_from_vec(vec: &BlsPubKeyVec, index: usize) -> Option<BlsPublicKey> {
+    unsafe {
+        let ptr = blscGetPublicKeyFromVec(vec.0, index);
+        if ptr.is_null() {
+            return None;
+        }
+        Some(BlsPublicKey(ptr, false))
     }
 }
 
@@ -504,6 +558,25 @@ pub fn bls_add_public_key_to_vec(vec: &mut BlsPubKeyVec, pub_key: &BlsPublicKey)
     }
 }
 
+pub fn bls_get_public_key_vec(vec: &BlsPubKeyVec) -> Option<BlsPublicKey> {
+    unsafe {
+        if vec.0.is_null() {
+            return None;
+        }
+        Some(BlsPublicKey(blscGetPublicKeyVec(vec.0), false))
+    }
+}
+
+pub fn bls_get_signature_from_vec(vec: &BlsSigVec, index: usize) -> Option<BlsSignature> {
+    unsafe {
+        let ptr = blscGetSignatureFromVec(vec.0, index);
+        if ptr.is_null() {
+            return None;
+        }
+        Some(BlsSignature(ptr, false))
+    }
+}
+
 pub fn bls_add_signature_to_vec(vec: &mut BlsSigVec, sig: &BlsSignature) {
     unsafe {
         let ptr = blscAddSignatureToVec(vec.0, vec.1, sig.0);
@@ -514,13 +587,22 @@ pub fn bls_add_signature_to_vec(vec: &mut BlsSigVec, sig: &BlsSignature) {
     }
 }
 
+pub fn bls_get_signature_key_vec(vec: &BlsSigVec) -> Option<BlsSignature> {
+    unsafe {
+        if vec.0.is_null() {
+            return None;
+        }
+        Some(BlsSignature(blscGetSignatureVec(vec.0), false))
+    }
+}
+
 pub fn bls_secret_key_recover(sec_key_vec: &BlsSecKeyVec, id_vec: &BlsIdVec, n: usize) -> Option<BlsSecretKey> {
     unsafe {
         let ptr = blscSecretKeyRecover(sec_key_vec.0, id_vec.0, n);
         if ptr.is_null() {
             return None;
         }
-        Some(BlsSecretKey(ptr))
+        Some(BlsSecretKey(ptr, true))
     }
 }
 
@@ -530,7 +612,7 @@ pub fn bls_public_key_recover(pub_key_vec: &BlsPubKeyVec, id_vec: &BlsIdVec, n: 
         if ptr.is_null() {
             return None;
         }
-        Some(BlsPublicKey(ptr))
+        Some(BlsPublicKey(ptr, true))
     }
 }
 
@@ -540,7 +622,7 @@ pub fn bls_signature_recover(sig_vec: &BlsSigVec, id_vec: &BlsIdVec, n: usize) -
         if ptr.is_null() {
             return None;
         }
-        Some(BlsSignature(ptr))
+        Some(BlsSignature(ptr, true))
     }
 }
 
@@ -550,7 +632,7 @@ pub fn bls_sign(sec_key: &BlsSecretKey, data: Arc<Vec<u8>>) -> Option<BlsSignatu
         if ptr.is_null() {
             return None;
         }
-        Some(BlsSignature(ptr))
+        Some(BlsSignature(ptr, true))
     }
 }
 
