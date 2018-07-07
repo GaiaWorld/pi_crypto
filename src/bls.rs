@@ -32,6 +32,9 @@ extern "C" {
     fn blscSecretKeyIsEqual(lhs: *const c_void, rhs: *const c_void) -> c_int;
     fn blscPublicKeyIsEqual(lhs: *const c_void, rhs: *const c_void) -> c_int;
     fn blscSignatureIsEqual(lhs: *const c_void, rhs: *const c_void) -> c_int;
+    fn blscSecretKeyAdd(sec_key: *const c_void, rhs: *const c_void);
+    fn blscPublicKeyAdd(pub_key: *const c_void, rhs: *const c_void);
+    fn blscSignatureAdd(sig: *const c_void, rhs: *const c_void);
     fn blscSecretKeyShare(msk: *const c_void, k: size_t, blsId: *const c_void) -> *const c_void;
     fn blscPublicKeyShare(mpk: *const c_void, k: size_t, blsId: *const c_void) -> *const c_void;
     fn blscAddIdToVec(blsIdVec: *const c_void, k: size_t, blsId: *const c_void) -> *const c_void;
@@ -437,6 +440,18 @@ pub fn bls_signature_is_equal(lhs: &BlsSignature, rhs: &BlsSignature) -> bool {
         }
         true
     }
+}
+
+pub fn bls_secret_key_add(sec_key: &BlsSecretKey, rhs: &BlsSecretKey) {
+    unsafe { blscSecretKeyAdd(sec_key.0, rhs.0); }
+}
+
+pub fn bls_public_key_add(pub_key: &BlsPublicKey, rhs: &BlsPublicKey) {
+    unsafe { blscPublicKeyAdd(pub_key.0, rhs.0); }
+}
+
+pub fn bls_signature_add(sig: &BlsSignature, rhs: &BlsSignature) {
+    unsafe { blscSignatureAdd(sig.0, rhs.0); }
 }
 
 pub fn bls_secret_key_share(src_key: &BlsSecretKey, k: usize, id: &BlsId) -> Option<BlsSecretKey> {
