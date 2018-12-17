@@ -3,7 +3,7 @@ use std::hash::Hasher;
 use rcrypto::sha3::{Sha3};
 use rcrypto::ripemd160::Ripemd160;
 use siphasher::sip::SipHasher24;
-use pi_math::hash::{H32, H160, H256};
+use hash_value::{H32, H160, H256};
 
 pub struct DHash160 {
 	sha256: Sha3,

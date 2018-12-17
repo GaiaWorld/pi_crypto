@@ -1,6 +1,6 @@
 extern crate libc;
 extern crate crypto as rcrypto;
-extern crate pi_math;
+extern crate hash_value;
 extern crate siphasher;
 
 pub mod hash;

@@ -7,4 +7,4 @@ authors = ["yineng <dev@dev.com>"]
 libc = "*"
 rust-crypto = "0.2.36"
 siphasher = "0.1.1"
-pi_math = { path = "../pi_math" }
+hash_value = { path = "../pi_math/hash_value" }

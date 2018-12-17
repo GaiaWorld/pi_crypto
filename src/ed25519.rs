@@ -1,6 +1,6 @@
 pub use rcrypto::digest::Digest;
 use rcrypto::ed25519;
-use pi_math::hash::{H256, H512};
+use hash_value::{H256, H512};
 
 #[inline]
 pub fn exchange(public_key: &[u8], private_key: &[u8]) -> H256 {
