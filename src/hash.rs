@@ -2,8 +2,10 @@ pub use rcrypto::digest::Digest;
 use std::hash::Hasher;
 use rcrypto::sha3::{Sha3};
 use rcrypto::ripemd160::Ripemd160;
+use sha1;
 use siphasher::sip::SipHasher24;
 use hash_value::{H32, H160, H256};
+use ring::digest;
 
 pub struct DHash160 {
 	sha256: Sha3,
@@ -156,9 +158,38 @@ pub fn checksum(data: &[u8]) -> H32 {
 	result
 }
 
+/// sha1
+#[inline]
+pub fn sha1(data: &[u8]) -> H160 {
+	H160::from(sha1::Sha1::from(data).digest().bytes())
+}
+
+/// sha256
+#[inline]
+pub fn sha256(data: &[u8]) -> H256 {
+	H256::from(digest::digest(&digest::SHA256, data).as_ref())
+}
+
 #[cfg(test)]
 mod tests {
-	use super::{ripemd160, keccak256, dhash160, dhash256, siphash24, checksum};
+	use super::{ripemd160, keccak256, dhash160, dhash256, siphash24, checksum, sha1, sha256, H160, H256};
+	// sha1 and sha256 test vector: https://www.di-mgt.com.au/sha_testvectors.html
+	#[test]
+	fn test_sha1 () {
+		let expected: H160 = "a9993e364706816aba3e25717850c26c9cd0d89d".into();
+		let actual = sha1(b"abc");
+
+		assert_eq!(expected, actual);
+	}
+
+	#[test]
+	fn test_sha256() {
+		let expected: H256 = "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad".into();
+		let actual = sha256(b"abc");
+
+		assert_eq!(expected, actual);
+	}
+
 	#[test]
 	fn test_ripemd160() {
 		let expected = "108f07b8382412612c048d07d13f814118445acd".into();

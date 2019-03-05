@@ -8,3 +8,5 @@ libc = "*"
 rust-crypto = "0.2.36"
 siphasher = "0.1.1"
 hash_value = { path = "../pi_math/hash_value" }
+ring = "0.14.6"
+sha1 = "0.6.0"
