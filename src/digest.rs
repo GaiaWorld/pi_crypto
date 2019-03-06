@@ -1,8 +1,6 @@
-use md5;
 use ring::digest as rdigest;
 
 pub enum DigestAlgorithm {
-	MD5,
 	SHA1,
 	SHA256,
 	SHA384,
@@ -11,7 +9,6 @@ pub enum DigestAlgorithm {
 
 pub fn digest(alg: DigestAlgorithm, data: &[u8]) -> Vec<u8> {
 	match alg {
-		DigestAlgorithm::MD5 => md5::compute(data).as_ref().to_vec(),
 		DigestAlgorithm::SHA1 => rdigest::digest(&rdigest::SHA1, data).as_ref().to_vec(),
 		DigestAlgorithm::SHA256 => rdigest::digest(&rdigest::SHA256, data).as_ref().to_vec(),
 		DigestAlgorithm::SHA384 => rdigest::digest(&rdigest::SHA384, data).as_ref().to_vec(),

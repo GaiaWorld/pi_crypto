@@ -9,8 +9,6 @@ rust-crypto = "0.2.36"
 siphasher = "0.1.1"
 hash_value = { path = "../pi_math/hash_value" }
 ring = "0.14.6"
-sha1 = "0.6.0"
-md5 = "0.6.1"
 secp256k1 = "0.12.2"
 
 [dev-dependencies]
