@@ -16,16 +16,16 @@ pub fn digest(alg: DigestAlgorithm, data: &[u8]) -> Vec<u8> {
 	}
 }
 
-#[cfg(test)]
-mod tests {
-	use super::*;
-	use hex::FromHex;
+// #[cfg(test)]
+// mod tests {
+// 	use super::*;
+// 	use hex::FromHex;
 
-	#[test]
-	fn test_sha1() {
-		let computed = digest(DigestAlgorithm::SHA1, b"abc");
-		let expected = Vec::from_hex("a9993e364706816aba3e25717850c26c9cd0d89d").unwrap();
-		assert_eq!(computed, expected);
-	}
-	// more tests here
-}
+// 	#[test]
+// 	fn test_sha1() {
+// 		let computed = digest(DigestAlgorithm::SHA1, b"abc");
+// 		let expected = Vec::from_hex("a9993e364706816aba3e25717850c26c9cd0d89d").unwrap();
+// 		assert_eq!(computed, expected);
+// 	}
+// 	// more tests here
+// }
