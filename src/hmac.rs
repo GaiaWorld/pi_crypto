@@ -1,4 +1,3 @@
-#![allow(non_snake_case)]
 use ring::digest as rdigest;
 use ring::hmac::{self, SigningKey};
 
