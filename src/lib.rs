@@ -14,6 +14,7 @@ pub mod ed25519;
 pub mod bls;
 pub mod hmac;
 pub mod signature;
+pub mod random;
 
 #[cfg(test)]
 extern crate hex;
