@@ -1,3 +1,6 @@
+/**
+* 基于BLS的门限签名算法
+*/
 use std::ptr::null;
 use std::sync::Arc;
 use std::ops::Drop;
@@ -56,6 +59,9 @@ extern "C" {
     fn blscFree(ptr: *const c_void);
 }
 
+/**
+* BLS算法的曲线类型
+*/
 pub enum Curve {
 	MclBnCurveFp254BNb = 0x0,
 	MclBnCurveFp382_1,
@@ -65,6 +71,9 @@ pub enum Curve {
 	MclBls12CurveFp381,
 }
 
+/**
+* BLS算法的成员唯一id
+*/
 pub struct BlsId(*const c_void, bool);
 
 impl Drop for BlsId {
@@ -75,6 +84,9 @@ impl Drop for BlsId {
     }
 }
 
+/**
+* BLS算法的私钥
+*/
 pub struct BlsSecretKey(*const c_void, bool);
 
 impl Drop for BlsSecretKey {
@@ -85,6 +97,9 @@ impl Drop for BlsSecretKey {
     }
 }
 
+/**
+* BLS算法的公钥
+*/
 pub struct BlsPublicKey(*const c_void, bool);
 
 impl Drop for BlsPublicKey {
@@ -95,6 +110,9 @@ impl Drop for BlsPublicKey {
     }
 }
 
+/**
+* BLS算法的签名
+*/
 pub struct BlsSignature(*const c_void, bool);
 
 impl Drop for BlsSignature {
@@ -105,6 +123,9 @@ impl Drop for BlsSignature {
     }
 }
 
+/**
+* BLS算法的成员唯一id向量
+*/
 pub struct BlsIdVec(*const c_void, usize);
 
 impl Drop for BlsIdVec {
@@ -119,6 +140,9 @@ impl BlsIdVec {
     }
 }
 
+/**
+* BLS算法私钥向量
+*/
 pub struct BlsSecKeyVec(*const c_void, usize);
 
 impl Drop for BlsSecKeyVec {
@@ -133,6 +157,9 @@ impl BlsSecKeyVec {
     }
 }
 
+/**
+* BLS算法公钥向量
+*/
 pub struct BlsPubKeyVec(*const c_void, usize);
 
 impl Drop for BlsPubKeyVec {
@@ -147,6 +174,9 @@ impl BlsPubKeyVec {
     }
 }
 
+/**
+* BLS算法签名向量
+*/
 pub struct BlsSigVec(*const c_void, usize);
 
 impl Drop for BlsSigVec {
@@ -161,8 +191,10 @@ impl BlsSigVec {
     }
 }
 
-/*
-* 线程安全的初始化
+/**
+* BLS算法初始化环境，只需要初始化一次
+* @param curve BLS算法的曲线类型
+* @returns 返回初始化是否成功
 */
 pub fn bls_init(curve: Curve) -> bool {
     unsafe {
@@ -217,12 +249,22 @@ pub fn bls_get_generator_of_g2() -> BlsPublicKey {
     }
 }
 
+/**
+* 指定唯一的整数，获取BLS算法的成员唯一id
+* @param x 唯一的整数
+* @returns 返回BLS算法的成员唯一id
+*/
 pub fn bls_id_set_int(x: i32) -> BlsId {
     unsafe {
         BlsId(blscIdSetInt(x), true)
     }
 }
 
+/**
+* 指定唯一的Dec字节串，获取BLS算法的成员唯一id
+* @param buf 唯一的Dec字符串
+* @returns 返回BLS算法的成员唯一id，可为空
+*/
 pub fn bls_id_set_dec_str(buf: String) -> Option<BlsId> {
     unsafe {
         let buf_size = buf.len();
@@ -234,6 +276,11 @@ pub fn bls_id_set_dec_str(buf: String) -> Option<BlsId> {
     }
 }
 
+/**
+* 指定唯一的Hex字节串，获取BLS算法的成员唯一id
+* @param buf 唯一的Hex字符串
+* @returns 返回BLS算法的成员唯一id，可为空
+*/
 pub fn bls_id_set_hex_str(buf: String) -> Option<BlsId> {
     unsafe {
         let buf_size = buf.len();
@@ -245,6 +292,12 @@ pub fn bls_id_set_hex_str(buf: String) -> Option<BlsId> {
     }
 }
 
+/**
+* 通过BLS算法的成员唯一id，获取唯一Dec字符串
+* @param max_buf_size 最大的缓冲大小
+* @param id BLS算法的成员唯一id
+* @returns 返回唯一Dec字符串，可为空
+*/
 pub fn bls_id_get_dec_str(max_buf_size: usize, id: &BlsId) -> Option<String> {
     if max_buf_size == 0 {
         return None;
@@ -266,6 +319,12 @@ pub fn bls_id_get_dec_str(max_buf_size: usize, id: &BlsId) -> Option<String> {
     }
 }
 
+/**
+* 通过BLS算法的成员唯一id，获取唯一Hex字符串
+* @param max_buf_size 最大的缓冲大小
+* @param id BLS算法的成员唯一id
+* @returns 返回唯一Hex字符串，可为空
+*/
 pub fn bls_id_get_hex_str(max_buf_size: usize, id: &BlsId) -> Option<String> {
     if max_buf_size == 0 {
         return None;
@@ -287,6 +346,11 @@ pub fn bls_id_get_hex_str(max_buf_size: usize, id: &BlsId) -> Option<String> {
     }
 }
 
+/**
+* 生成指定种子的BLS私钥
+* @param buf 种子的二进制数据
+* @returns 返回BLS私钥，可为空
+*/
 pub fn bls_hash_to_secret_key(buf: Vec<u8>) -> Option<BlsSecretKey> {
     unsafe {
         let ptr = blscHashToSecretKey(buf.as_ptr() as *const c_void, buf.len());
@@ -297,6 +361,11 @@ pub fn bls_hash_to_secret_key(buf: Vec<u8>) -> Option<BlsSecretKey> {
     }
 }
 
+/**
+* 获取指定BLS私钥的公钥
+* @param sec_key BLS私钥
+* @returns 返回BLS公钥，可为空
+*/
 pub fn bls_get_public_key(sec_key: &BlsSecretKey) -> Option<BlsPublicKey> {
     unsafe {
         let ptr = blscGetPublicKey(sec_key.0);
@@ -307,6 +376,11 @@ pub fn bls_get_public_key(sec_key: &BlsSecretKey) -> Option<BlsPublicKey> {
     }
 }
 
+/**
+* 获取指定BLS私钥的签名
+* @param sec_key BLS私钥
+* @returns 返回签名，可为空
+*/
 pub fn bls_get_pop(sec_key: &BlsSecretKey) -> Option<BlsSignature> {
     unsafe {
         let ptr = blscGetPop(sec_key.0);
@@ -317,6 +391,12 @@ pub fn bls_get_pop(sec_key: &BlsSecretKey) -> Option<BlsSignature> {
     }
 }
 
+/**
+* 验证BLS私钥的签名
+* @param sig BLS私钥的签名
+* @param pub_key BLS公钥
+* @returns 返回验证签名是否成功
+*/
 pub fn bls_verify_pop(sig: &BlsSignature, pub_key: &BlsPublicKey) -> bool {
     unsafe {
         if blscVerifyPop(sig.0, pub_key.0) != 1 {
@@ -326,6 +406,12 @@ pub fn bls_verify_pop(sig: &BlsSignature, pub_key: &BlsPublicKey) -> bool {
     }
 }
 
+/**
+* 序列化BLS算法的成员唯一id
+* @param max_buf_size 最大的缓冲大小
+* @param id BLS算法的成员唯一id
+* @returns 返回序列化数据，可为空
+*/
 pub fn bls_id_serialize(max_buf_size: usize, id: &BlsId) -> Option<Vec<u8>> {
     unsafe {
         let mut buf: Vec<u8> = Vec::with_capacity(max_buf_size);
@@ -339,6 +425,12 @@ pub fn bls_id_serialize(max_buf_size: usize, id: &BlsId) -> Option<Vec<u8>> {
     }
 }
 
+/**
+* 序列化BLS私钥
+* @param max_buf_size 最大的缓冲大小
+* @param sec_key BLS私钥
+* @returns 返回序列化数据，可为空
+*/
 pub fn bls_secret_key_serialize(max_buf_size: usize, sec_key: &BlsSecretKey) -> Option<Vec<u8>> {
     unsafe {
         let mut buf: Vec<u8> = Vec::with_capacity(max_buf_size);
@@ -353,6 +445,12 @@ pub fn bls_secret_key_serialize(max_buf_size: usize, sec_key: &BlsSecretKey) -> 
     }
 }
 
+/**
+* 序列化BLS公钥
+* @param max_buf_size 最大的缓冲大小
+* @param pub_key BLS公钥
+* @returns 返回序列化数据，可为空
+*/
 pub fn bls_public_key_serialize(max_buf_size: usize, pub_key: &BlsPublicKey) -> Option<Vec<u8>> {
     unsafe {
         let mut buf: Vec<u8> = Vec::with_capacity(max_buf_size);
@@ -367,6 +465,12 @@ pub fn bls_public_key_serialize(max_buf_size: usize, pub_key: &BlsPublicKey) -> 
     }
 }
 
+/**
+* 序列化BLS签名
+* @param max_buf_size 最大的缓冲大小
+* @param sig BLS签名
+* @returns 返回序列化数据，可为空
+*/
 pub fn bls_signature_serialize(max_buf_size: usize, sig: &BlsSignature) -> Option<Vec<u8>> {
     unsafe {
         let mut buf: Vec<u8> = Vec::with_capacity(max_buf_size);
@@ -381,6 +485,11 @@ pub fn bls_signature_serialize(max_buf_size: usize, sig: &BlsSignature) -> Optio
     }
 }
 
+/**
+* 反序列化BLS算法的成员唯一id
+* @param buf 序列化数据
+* @returns 返回BLS算法的成员唯一id，可为空
+*/
 pub fn bls_id_deserialize(buf: Vec<u8>) -> Option<BlsId> {
     unsafe {
         let ptr = blscIdDeserialize(buf.as_ptr() as *const c_void, buf.len());
@@ -391,6 +500,11 @@ pub fn bls_id_deserialize(buf: Vec<u8>) -> Option<BlsId> {
     }
 }
 
+/**
+* 反序列化BLS私钥
+* @param buf 序列化数据
+* @returns 返回BLS私钥，可为空
+*/
 pub fn bls_secret_key_deserialize(buf: Vec<u8>) -> Option<BlsSecretKey> {
     unsafe {
         let ptr = blscSecretKeyDeserialize(buf.as_ptr() as *const c_void, buf.len());
@@ -401,6 +515,11 @@ pub fn bls_secret_key_deserialize(buf: Vec<u8>) -> Option<BlsSecretKey> {
     }
 }
 
+/**
+* 反序列化BLS公钥
+* @param buf 序列化数据
+* @returns 返回BLS公钥，可为空
+*/
 pub fn bls_public_key_deserialize(buf: Vec<u8>) -> Option<BlsPublicKey> {
     unsafe {
         let ptr = blscPublicKeyDeserialize(buf.as_ptr() as *const c_void, buf.len());
@@ -411,6 +530,11 @@ pub fn bls_public_key_deserialize(buf: Vec<u8>) -> Option<BlsPublicKey> {
     }
 }
 
+/**
+* 反序列化BLS签名
+* @param buf 序列化数据
+* @returns 返回BLS签名，可为空
+*/
 pub fn bls_signature_deserialize(buf: Vec<u8>) -> Option<BlsSignature> {
     unsafe {
         let ptr = blscSignatureDeserialize(buf.as_ptr() as *const c_void, buf.len());
@@ -421,6 +545,12 @@ pub fn bls_signature_deserialize(buf: Vec<u8>) -> Option<BlsSignature> {
     }
 }
 
+/**
+* 检查两个指定的BLS算法的成员唯一id是否相同
+* @param lhs BLS算法的成员唯一id
+* @param rhs BLS算法的成员唯一id
+* @returns 返回是否相同
+*/
 pub fn bls_id_is_equal(lhs: &BlsId, rhs: &BlsId) -> bool {
     unsafe {
         if blscIdIsEqual(lhs.0, rhs.0) == 0 {
@@ -430,6 +560,12 @@ pub fn bls_id_is_equal(lhs: &BlsId, rhs: &BlsId) -> bool {
     }
 }
 
+/**
+* 检查两个指定的BLS私钥是否相同
+* @param lhs BLS私钥
+* @param rhs BLS私钥
+* @returns 返回是否相同
+*/
 pub fn bls_secret_key_is_equal(lhs: &BlsSecretKey, rhs: &BlsSecretKey) -> bool {
     unsafe {
         if blscSecretKeyIsEqual(lhs.0, rhs.0) == 0 {
@@ -439,6 +575,12 @@ pub fn bls_secret_key_is_equal(lhs: &BlsSecretKey, rhs: &BlsSecretKey) -> bool {
     }
 }
 
+/**
+* 检查两个指定的BLS公钥是否相同
+* @param lhs BLS公钥
+* @param rhs BLS公钥
+* @returns 返回是否相同
+*/
 pub fn bls_public_key_is_equal(lhs: &BlsPublicKey, rhs: &BlsPublicKey) -> bool {
     unsafe {
         if blscPublicKeyIsEqual(lhs.0, rhs.0) == 0 {
@@ -448,6 +590,12 @@ pub fn bls_public_key_is_equal(lhs: &BlsPublicKey, rhs: &BlsPublicKey) -> bool {
     }
 }
 
+/**
+* 检查两个指定的BLS签名是否相同
+* @param lhs BLS签名
+* @param rhs BLS签名
+* @returns 返回是否相同
+*/
 pub fn bls_signature_is_equal(lhs: &BlsSignature, rhs: &BlsSignature) -> bool {
     unsafe {
         if blscSignatureIsEqual(lhs.0, rhs.0) == 0 {
@@ -457,18 +605,40 @@ pub fn bls_signature_is_equal(lhs: &BlsSignature, rhs: &BlsSignature) -> bool {
     }
 }
 
+/**
+* 在指定的主BLS私钥上增加一个副BLS私钥
+* @param sec_key 主BLS私钥
+* @param rhs 副BLS私钥
+*/
 pub fn bls_secret_key_add(sec_key: &BlsSecretKey, rhs: &BlsSecretKey) {
     unsafe { blscSecretKeyAdd(sec_key.0, rhs.0); }
 }
 
+/**
+* 在指定的主BLS公钥上增加一个副BLS公钥
+* @param pub_key 主BLS公钥
+* @param rhs 副BLS公钥
+*/
 pub fn bls_public_key_add(pub_key: &BlsPublicKey, rhs: &BlsPublicKey) {
     unsafe { blscPublicKeyAdd(pub_key.0, rhs.0); }
 }
 
+/**
+* 在指定的主BLS主签名上增加一个副BLS签名
+* @param sig 主BLS签名
+* @param rhs 副BLS签名
+*/
 pub fn bls_signature_add(sig: &BlsSignature, rhs: &BlsSignature) {
     unsafe { blscSignatureAdd(sig.0, rhs.0); }
 }
 
+/**
+* 生成指定主私钥、共享人数、共享人的成员唯一id
+* @param src_key BLS主私钥
+* @param k 共享人数
+* @param id BLS算法的成员唯一id
+* @returns 返回共享的BLS私钥，可为空
+*/
 pub fn bls_secret_key_share(src_key: &BlsSecretKey, k: usize, id: &BlsId) -> Option<BlsSecretKey> {
     unsafe {
         let ptr = blscSecretKeyShare(src_key.0, k, id.0);
@@ -479,6 +649,13 @@ pub fn bls_secret_key_share(src_key: &BlsSecretKey, k: usize, id: &BlsId) -> Opt
     }
 }
 
+/**
+* 生成指定主公钥、共享人数、共享人的成员唯一id
+* @param src_key BLS主公钥
+* @param k 共享人数
+* @param id BLS算法的成员唯一id
+* @returns 返回共享的BLS公钥，可为空
+*/
 pub fn bls_public_key_share(src_key: &BlsPublicKey, k: usize, id: &BlsId) -> Option<BlsPublicKey> {
     unsafe {
         let ptr = blscPublicKeyShare(src_key.0, k, id.0);
@@ -489,6 +666,12 @@ pub fn bls_public_key_share(src_key: &BlsPublicKey, k: usize, id: &BlsId) -> Opt
     }
 }
 
+/**
+* 获取成员唯一id向量中指定序号的成员唯一id
+* @param vec BLS算法的成员唯一id向量
+* @param index 序号
+* @returns 返回BLS算法的成员唯一id，可为空
+*/
 pub fn bls_get_id_from_vec(vec: &BlsIdVec, index: usize) -> Option<BlsId> {
     unsafe {
         let ptr = blscGetIdFromVec(vec.0, index);
@@ -499,6 +682,11 @@ pub fn bls_get_id_from_vec(vec: &BlsIdVec, index: usize) -> Option<BlsId> {
     }
 }
 
+/**
+* 在指定的成员唯一id向量中增加指定的成员唯一id
+* @param vec BLS算法的成员唯一id向量
+* @param id BLS算法的成员唯一id
+*/
 pub fn bls_add_id_to_vec(vec: &mut BlsIdVec, id: &BlsId) {
     unsafe {
         let ptr = blscAddIdToVec(vec.0, vec.1, id.0);
@@ -509,6 +697,12 @@ pub fn bls_add_id_to_vec(vec: &mut BlsIdVec, id: &BlsId) {
     }
 }
 
+/**
+* 获取私钥向量中指定序号的私钥
+* @param vec BLS私钥向量
+* @param index 序号
+* @returns 返回BLS私钥，可为空
+*/
 pub fn bls_get_secret_key_from_vec(vec: &BlsSecKeyVec, index: usize) -> Option<BlsSecretKey> {
     unsafe {
         let ptr = blscGetSecretKeyFromVec(vec.0, index);
@@ -519,6 +713,11 @@ pub fn bls_get_secret_key_from_vec(vec: &BlsSecKeyVec, index: usize) -> Option<B
     }
 }
 
+/**
+* 在指定的私钥向量中增加指定的私钥
+* @param vec BLS私钥向量
+* @param sec_key BLS私钥
+*/
 pub fn bls_add_secret_key_to_vec(vec: &mut BlsSecKeyVec, sec_key: &BlsSecretKey) {
     unsafe {
         let ptr = blscAddSecretKeyToVec(vec.0, vec.1, sec_key.0);
@@ -529,6 +728,11 @@ pub fn bls_add_secret_key_to_vec(vec: &mut BlsSecKeyVec, sec_key: &BlsSecretKey)
     }
 }
 
+/**
+* 获取指定私钥向量的组合私钥
+* @param vec BLS私钥向量
+* @returns 返回组合私钥，可为空
+*/
 pub fn bls_get_secret_key_vec(vec: &BlsSecKeyVec) -> Option<BlsSecretKey> {
     unsafe {
         if vec.0.is_null() {
@@ -538,6 +742,12 @@ pub fn bls_get_secret_key_vec(vec: &BlsSecKeyVec) -> Option<BlsSecretKey> {
     }
 }
 
+/**
+* 获取公钥向量中指定序号的公钥
+* @param vec BLS公钥向量
+* @param index 序号
+* @returns 返回BLS公钥，可为空
+*/
 pub fn bls_get_public_key_from_vec(vec: &BlsPubKeyVec, index: usize) -> Option<BlsPublicKey> {
     unsafe {
         let ptr = blscGetPublicKeyFromVec(vec.0, index);
@@ -548,6 +758,11 @@ pub fn bls_get_public_key_from_vec(vec: &BlsPubKeyVec, index: usize) -> Option<B
     }
 }
 
+/**
+* 在指定的公钥向量中增加指定的公钥
+* @param vec BLS公钥向量
+* @param sec_key BLS公钥
+*/
 pub fn bls_add_public_key_to_vec(vec: &mut BlsPubKeyVec, pub_key: &BlsPublicKey) {
     unsafe {
         let ptr = blscAddPublicKeyToVec(vec.0, vec.1, pub_key.0);
@@ -558,6 +773,11 @@ pub fn bls_add_public_key_to_vec(vec: &mut BlsPubKeyVec, pub_key: &BlsPublicKey)
     }
 }
 
+/**
+* 获取指定公钥向量的组合公钥
+* @param vec BLS公钥向量
+* @returns 返回组合公钥，可为空
+*/
 pub fn bls_get_public_key_vec(vec: &BlsPubKeyVec) -> Option<BlsPublicKey> {
     unsafe {
         if vec.0.is_null() {
@@ -567,6 +787,12 @@ pub fn bls_get_public_key_vec(vec: &BlsPubKeyVec) -> Option<BlsPublicKey> {
     }
 }
 
+/**
+* 获取签名向量中指定序号的签名
+* @param vec BLS签名向量
+* @param index 序号
+* @returns 返回BLS签名，可为空
+*/
 pub fn bls_get_signature_from_vec(vec: &BlsSigVec, index: usize) -> Option<BlsSignature> {
     unsafe {
         let ptr = blscGetSignatureFromVec(vec.0, index);
@@ -577,6 +803,11 @@ pub fn bls_get_signature_from_vec(vec: &BlsSigVec, index: usize) -> Option<BlsSi
     }
 }
 
+/**
+* 在指定的签名向量中增加指定的签名
+* @param vec BLS签名向量
+* @param sec_key BLS签名
+*/
 pub fn bls_add_signature_to_vec(vec: &mut BlsSigVec, sig: &BlsSignature) {
     unsafe {
         let ptr = blscAddSignatureToVec(vec.0, vec.1, sig.0);
@@ -587,6 +818,11 @@ pub fn bls_add_signature_to_vec(vec: &mut BlsSigVec, sig: &BlsSignature) {
     }
 }
 
+/**
+* 获取指定签名向量的组合签名
+* @param vec BLS签名向量
+* @returns 返回组合签名，可为空
+*/
 pub fn bls_get_signature_key_vec(vec: &BlsSigVec) -> Option<BlsSignature> {
     unsafe {
         if vec.0.is_null() {
@@ -596,6 +832,13 @@ pub fn bls_get_signature_key_vec(vec: &BlsSigVec) -> Option<BlsSignature> {
     }
 }
 
+/**
+* 通过指定长度的私钥向量和成员唯一id向量，恢复主私钥
+* @param sec_key_vec BLS私钥向量
+* @param id_vec BLS算法的成员唯一id向量
+* @param n 向量的长度
+* @returns 返回主私钥，可为空
+*/
 pub fn bls_secret_key_recover(sec_key_vec: &BlsSecKeyVec, id_vec: &BlsIdVec, n: usize) -> Option<BlsSecretKey> {
     unsafe {
         let ptr = blscSecretKeyRecover(sec_key_vec.0, id_vec.0, n);
@@ -606,6 +849,13 @@ pub fn bls_secret_key_recover(sec_key_vec: &BlsSecKeyVec, id_vec: &BlsIdVec, n: 
     }
 }
 
+/**
+* 通过指定长度的公钥向量和成员唯一id向量，恢复主公钥
+* @param pub_key_vec BLS公钥向量
+* @param id_vec BLS算法的成员唯一id向量
+* @param n 向量的长度
+* @returns 返回主公钥，可为空
+*/
 pub fn bls_public_key_recover(pub_key_vec: &BlsPubKeyVec, id_vec: &BlsIdVec, n: usize) -> Option<BlsPublicKey> {
     unsafe {
         let ptr = blscPublicKeyRecover(pub_key_vec.0, id_vec.0, n);
@@ -616,6 +866,13 @@ pub fn bls_public_key_recover(pub_key_vec: &BlsPubKeyVec, id_vec: &BlsIdVec, n: 
     }
 }
 
+/**
+* 通过指定长度的签名向量和成员唯一id向量，恢复主签名
+* @param sec_key_vec BLS签名向量
+* @param id_vec BLS算法的成员唯一id向量
+* @param n 向量的长度
+* @returns 返回主签名，可为空
+*/
 pub fn bls_signature_recover(sig_vec: &BlsSigVec, id_vec: &BlsIdVec, n: usize) -> Option<BlsSignature> {
     unsafe {
         let ptr = blscSignatureRecover(sig_vec.0, id_vec.0, n);
@@ -626,6 +883,12 @@ pub fn bls_signature_recover(sig_vec: &BlsSigVec, id_vec: &BlsIdVec, n: usize) -
     }
 }
 
+/**
+* BLS签名
+* @param sec_key BLS私钥
+* @param data 待签名的数据
+* @returns 返回签名，可为空
+*/
 pub fn bls_sign(sec_key: &BlsSecretKey, data: Arc<Vec<u8>>) -> Option<BlsSignature> {
     unsafe {
         let ptr = blscSign(sec_key.0, data.as_ptr() as *const c_void, data.len());
@@ -636,6 +899,13 @@ pub fn bls_sign(sec_key: &BlsSecretKey, data: Arc<Vec<u8>>) -> Option<BlsSignatu
     }
 }
 
+/**
+* 验证BLS签名
+* @param sig BLS签名
+* @param pub_key BLS公钥
+* @param data 已签名数据
+* @returns 返回验证签名是否成功
+*/
 pub fn bls_verify(sig: &BlsSignature, pub_key: &BlsPublicKey, data: Arc<Vec<u8>>) -> bool {
     unsafe {
         if blscVerify(sig.0, pub_key.0, data.as_ptr() as *const c_void, data.len()) != 1 {

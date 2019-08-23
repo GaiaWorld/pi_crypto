@@ -1,8 +1,17 @@
+/**
+* 密钥hash消息认证码
+*/
 use ring::digest as rdigest;
 use ring::hmac::{self, SigningKey};
 
+/**
+* 密钥hash消息认证码对象
+*/
 pub struct Hmac;
 
+/**
+* SHA加密算法类型
+*/
 pub enum DigestAlgorithm {
 	SHA1,
 	SHA256,
@@ -11,6 +20,13 @@ pub enum DigestAlgorithm {
 }
 
 impl Hmac {
+    /**
+    * 使用指定的SHA加密算法和密钥，对数据进行签名
+    * @param alg SHA加密算法类型
+    * @param key 密钥
+    * @param data 待签名的数据
+    * @returns 返回签名
+    */
     pub fn sign(alg: DigestAlgorithm, key: &[u8], data: &[u8]) -> Vec<u8> {
         match alg {
             DigestAlgorithm::SHA1 => hmac::sign(&SigningKey::new(&rdigest::SHA1, key), data)
@@ -28,6 +44,14 @@ impl Hmac {
         }
     }
 
+    /**
+    * 验证通过指定SHA加密算法和密钥进行加密的签名
+    * @param alg SHA加密算法类型
+    * @param key 密钥
+    * @param data 已签名的数据
+    * @param signature 签名
+    * @returns 返回验证签名是否成功
+    */
     pub fn verify(alg: DigestAlgorithm, key: &[u8], data: &[u8], signature: &[u8]) -> bool {
         match alg {
             DigestAlgorithm::SHA1 => {

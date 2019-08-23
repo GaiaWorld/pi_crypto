@@ -13,7 +13,7 @@ fn test_bls() {
         assert!(bls_get_curve_order(256).is_some());
         assert!(bls_get_field_order(256).is_some());
         bls_get_generator_of_g2();
-        let default_id = bls_id_set_int(0x7fffffff);
+        let bls_id_set_dec_str = bls_id_set_int(0x7fffffff);
         let dec_str = "23156878976321321325446789".to_string();
         let dec_id = bls_id_set_dec_str(dec_str.clone());
         assert!(dec_id.is_some());
