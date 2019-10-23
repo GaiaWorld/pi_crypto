@@ -2,7 +2,7 @@
 * 密钥hash消息认证码
 */
 use ring::digest as rdigest;
-use ring::hmac::{self, SigningKey};
+use ring::hmac;
 
 /**
 * 密钥hash消息认证码对象
@@ -29,16 +29,16 @@ impl Hmac {
     */
     pub fn sign(alg: DigestAlgorithm, key: &[u8], data: &[u8]) -> Vec<u8> {
         match alg {
-            DigestAlgorithm::SHA1 => hmac::sign(&SigningKey::new(&rdigest::SHA1, key), data)
+            DigestAlgorithm::SHA1 => hmac::sign(&hmac::Key::new(hmac::HMAC_SHA1_FOR_LEGACY_USE_ONLY, key), data)
                 .as_ref()
                 .to_vec(),
-            DigestAlgorithm::SHA256 => hmac::sign(&SigningKey::new(&rdigest::SHA256, key), data)
+            DigestAlgorithm::SHA256 => hmac::sign(&hmac::Key::new(hmac::HMAC_SHA256, key), data)
                 .as_ref()
                 .to_vec(),
-            DigestAlgorithm::SHA384 => hmac::sign(&SigningKey::new(&rdigest::SHA384, key), data)
+            DigestAlgorithm::SHA384 => hmac::sign(&hmac::Key::new(hmac::HMAC_SHA384, key), data)
                 .as_ref()
                 .to_vec(),
-            DigestAlgorithm::SHA512 => hmac::sign(&SigningKey::new(&rdigest::SHA512, key), data)
+            DigestAlgorithm::SHA512 => hmac::sign(&hmac::Key::new(hmac::HMAC_SHA512, key), data)
                 .as_ref()
                 .to_vec(),
         }
@@ -55,19 +55,19 @@ impl Hmac {
     pub fn verify(alg: DigestAlgorithm, key: &[u8], data: &[u8], signature: &[u8]) -> bool {
         match alg {
             DigestAlgorithm::SHA1 => {
-                hmac::verify_with_own_key(&SigningKey::new(&rdigest::SHA1, key), data, signature)
+                hmac::verify(&hmac::Key::new(hmac::HMAC_SHA1_FOR_LEGACY_USE_ONLY, key), data, signature)
                     .is_ok()
             }
             DigestAlgorithm::SHA256 => {
-                hmac::verify_with_own_key(&SigningKey::new(&rdigest::SHA256, key), data, signature)
+                hmac::verify(&hmac::Key::new(hmac::HMAC_SHA256, key), data, signature)
                     .is_ok()
             }
             DigestAlgorithm::SHA384 => {
-                hmac::verify_with_own_key(&SigningKey::new(&rdigest::SHA384, key), data, signature)
+                hmac::verify(&hmac::Key::new(hmac::HMAC_SHA384, key), data, signature)
                     .is_ok()
             }
             DigestAlgorithm::SHA512 => {
-                hmac::verify_with_own_key(&SigningKey::new(&rdigest::SHA512, key), data, signature)
+                hmac::verify(&hmac::Key::new(hmac::HMAC_SHA512, key), data, signature)
                     .is_ok()
             }
         }

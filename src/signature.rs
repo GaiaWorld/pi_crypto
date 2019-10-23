@@ -85,8 +85,6 @@ impl Rsa {
     * @returns 返回RSA签名算法对象
     */
     pub fn fromPKCS8(input: &[u8]) -> Rsa {
-        let input = Input::from(input);
-
         Rsa {
             ctx: RsaKeyPair::from_pkcs8(input).unwrap(),
         }
@@ -156,34 +154,30 @@ impl Rsa {
     * @returns 返回验证签名是否成功
     */
     pub fn verify(&self, padAlg: PaddingAlg, msg: &[u8], sig: &[u8], pk: &[u8]) -> bool {
-        let public_key = Input::from(pk);
-        let sig = Input::from(sig);
-        let msg = Input::from(msg);
-
         match padAlg {
             PaddingAlg::RSA_PKCS1_SHA256 => {
-                signature::verify(&signature::RSA_PKCS1_2048_8192_SHA256, public_key, msg, sig)
+                signature::UnparsedPublicKey::new(&signature::RSA_PKCS1_2048_8192_SHA256, pk).verify(msg, sig)
                     .is_ok()
             }
             PaddingAlg::RSA_PKCS1_SHA384 => {
-                signature::verify(&signature::RSA_PKCS1_2048_8192_SHA384, public_key, msg, sig)
+                signature::UnparsedPublicKey::new(&signature::RSA_PKCS1_2048_8192_SHA384, pk).verify(msg, sig)
                     .is_ok()
             }
             PaddingAlg::RSA_PKCS1_SHA512 => {
-                signature::verify(&signature::RSA_PKCS1_2048_8192_SHA512, public_key, msg, sig)
+                signature::UnparsedPublicKey::new(&signature::RSA_PKCS1_2048_8192_SHA512, pk).verify(msg, sig)
                     .is_ok()
             }
 
             PaddingAlg::RSA_PSS_SHA256 => {
-                signature::verify(&signature::RSA_PSS_2048_8192_SHA256, public_key, msg, sig)
+                signature::UnparsedPublicKey::new(&signature::RSA_PSS_2048_8192_SHA256, pk).verify(msg, sig)
                     .is_ok()
             }
             PaddingAlg::RSA_PSS_SHA384 => {
-                signature::verify(&signature::RSA_PSS_2048_8192_SHA384, public_key, msg, sig)
+                signature::UnparsedPublicKey::new(&signature::RSA_PSS_2048_8192_SHA384, pk).verify(msg, sig)
                     .is_ok()
             }
             PaddingAlg::RSA_PSS_SHA512 => {
-                signature::verify(&signature::RSA_PSS_2048_8192_SHA512, public_key, msg, sig)
+                signature::UnparsedPublicKey::new(&signature::RSA_PSS_2048_8192_SHA512, pk).verify(msg, sig)
                     .is_ok()
             }
         }
