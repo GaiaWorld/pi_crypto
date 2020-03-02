@@ -34,10 +34,30 @@ impl ECDSASecp256k1 {
     * @returns 返回签名
     */
     pub fn sign(&self, msg: &[u8], sk: &[u8]) -> Vec<u8> {
-        let sk = SecretKey::from_slice(&self.ctx, sk).unwrap();
-        let msg = Message::from_slice(msg).unwrap();
+        let sk = match SecretKey::from_slice(&self.ctx, sk) {
+            Ok(sk) => sk,
+            Err(e) => {
+                println!("decode secret key error = {:?}", e);
+                return vec![]
+            }
+        };
+        let msg = match Message::from_slice(msg) {
+            Ok(msg) => msg,
+            Err(e) => {
+                println!("ecdsa decode msg error = {:?}, msg = {:?}", e, msg);
+                return vec![]
+            }
+        };
 
-        self.ctx.sign(&msg, &sk).unwrap().serialize_der(&self.ctx)
+        match self.ctx.sign(&msg, &sk) {
+            Ok(signed) => {
+                signed.serialize_der(&self.ctx)
+            }
+            Err(e) => {
+                println!("esdsa serialize sig error = {:?}", e);
+                vec![]
+            }
+        }
     }
 
     /**
@@ -48,9 +68,27 @@ impl ECDSASecp256k1 {
     * @returns 返回验证签名是否成功
     */
     pub fn verify(&self, msg: &[u8], sig: &[u8], pk: &[u8]) -> bool {
-        let msg = Message::from_slice(msg).unwrap();
-        let pk = PublicKey::from_slice(&self.ctx, pk).unwrap();
-        let sig = Signature::from_der(&self.ctx, sig).unwrap();
+        let msg = match Message::from_slice(msg) {
+            Ok(msg) => msg,
+            Err(e) => {
+                println!("ecdsa decode msg error = {:?}, msg = {:?}", e, msg);
+                return false
+            }
+        };
+        let pk = match PublicKey::from_slice(&self.ctx, pk) {
+            Ok(pk) => pk,
+            Err(e) => {
+                println!("ecdsa decode publick key error = {:?}, pk = {:?}", e, pk);
+                return false
+            }
+        };
+        let sig = match Signature::from_der(&self.ctx, sig) {
+            Ok(sig) => sig,
+            Err(e) => {
+                println!("ecdsa decode sig error = {:?}, sig = {:?}", e, sig);
+                return false
+            }
+        };
 
         self.ctx.verify(&msg, &sig, &pk).is_ok()
     }
