@@ -5,9 +5,8 @@ use secp256k1::key::PublicKey;
 use secp256k1::key::SecretKey;
 use secp256k1::{Message, Secp256k1, Signature};
 
-use ring::signature::{KeyPair, RsaKeyPair};
+use ring::signature::{KeyPair, RsaKeyPair, EcdsaKeyPair as EcKeyPair, ECDSA_P256_SHA256_ASN1_SIGNING, ECDSA_P384_SHA384_ASN1_SIGNING, ECDSA_P256_SHA256_ASN1, ECDSA_P384_SHA384_ASN1};
 use ring::{rand, signature};
-use untrusted::Input;
 
 /**
 * 基于secp256k1的签名算法对象
@@ -222,6 +221,95 @@ impl Rsa {
     }
 }
 
+// NIST曲线, P256 和 p384
+#[derive(Debug)]
+pub enum EcdsaAlg {
+    // Signing of ASN.1 DER-encoded ECDSA signatures using the P-256 curve and SHA-256.
+    ECDSA_P256_SHA256_ASN1,
+    // Signing of ASN.1 DER-encoded ECDSA signatures using the P-384 curve and SHA-384.
+    ECDSA_P384_SHA384_ASN1,
+}
+
+pub struct EcdsaKeyPair {
+    key_pair: EcKeyPair
+}
+
+impl EcdsaKeyPair {
+    // 产生pkcs8格式的密钥对
+    pub fn generate_pkcs8(alg: EcdsaAlg) -> Vec<u8> {
+        let rng = rand::SystemRandom::new();
+        match alg {
+            EcdsaAlg::ECDSA_P256_SHA256_ASN1 => {
+                signature::EcdsaKeyPair::generate_pkcs8(&ECDSA_P256_SHA256_ASN1_SIGNING, &rng).unwrap().as_ref().to_vec()
+            },
+            EcdsaAlg::ECDSA_P384_SHA384_ASN1 => {
+                signature::EcdsaKeyPair::generate_pkcs8(&ECDSA_P384_SHA384_ASN1_SIGNING, &rng).unwrap().as_ref().to_vec()
+            },
+        }
+    }
+
+    // 从私钥和公钥构建密钥对
+    pub fn from_private_key_and_public_key(alg: EcdsaAlg, priv_key: &[u8], pub_key: &[u8]) -> Self {
+        match alg {
+            EcdsaAlg::ECDSA_P256_SHA256_ASN1 => {
+                let key_pair = EcKeyPair::from_private_key_and_public_key(&ECDSA_P256_SHA256_ASN1_SIGNING, priv_key, pub_key).unwrap();
+                Self {
+                    key_pair
+                }
+            }
+            EcdsaAlg::ECDSA_P384_SHA384_ASN1 => {
+                let key_pair = EcKeyPair::from_private_key_and_public_key(&ECDSA_P384_SHA384_ASN1_SIGNING, priv_key, pub_key).unwrap();
+                Self {
+                    key_pair
+                }
+            }
+        }
+    }
+
+    // 从pkcs8格式构建密钥对
+    pub fn from_pkcs8(alg: EcdsaAlg, pkcs8: &[u8]) -> Self {
+        let key_pair = match alg {
+            EcdsaAlg::ECDSA_P256_SHA256_ASN1 => {
+                signature::EcdsaKeyPair::from_pkcs8(&ECDSA_P256_SHA256_ASN1_SIGNING, pkcs8).unwrap()
+            },
+            EcdsaAlg::ECDSA_P384_SHA384_ASN1 => {
+                signature::EcdsaKeyPair::from_pkcs8(&ECDSA_P384_SHA384_ASN1_SIGNING, pkcs8).unwrap()
+            }
+        };
+        Self {
+            key_pair
+        }
+    }
+
+    // 签名
+    pub fn sign(&self, msg: &[u8]) -> Vec<u8> {
+        let rng = rand::SystemRandom::new();
+        self.key_pair.sign(&rng, msg).unwrap().as_ref().to_vec()
+    }
+
+    // 取得公钥
+    pub fn public_key(&self) -> Vec<u8> {
+        self.key_pair.public_key().as_ref().to_vec()
+    }
+}
+
+// 验证签名
+pub fn ecdsa_verify(alg: EcdsaAlg, pub_key: &[u8], msg: &[u8], sig: &[u8]) -> bool {
+    let public_key = match alg {
+        EcdsaAlg::ECDSA_P256_SHA256_ASN1 => {
+            signature::UnparsedPublicKey::new(&ECDSA_P256_SHA256_ASN1, pub_key)
+        }
+        EcdsaAlg::ECDSA_P384_SHA384_ASN1 => {
+            signature::UnparsedPublicKey::new(&ECDSA_P384_SHA384_ASN1, pub_key)
+        }
+    };
+
+    match public_key.verify(msg, sig) {
+        Ok(()) => true,
+        Err(_) => false
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -248,5 +336,19 @@ mod tests {
         let pk = rsa.public_key();
         let sig = rsa.sign(PaddingAlg::RSA_PKCS1_SHA256, MESSAGE);
         assert!(rsa.verify(PaddingAlg::RSA_PKCS1_SHA256, MESSAGE, &sig, &pk));
+    }
+
+    #[test]
+    fn test_ecdsa() {
+        let msg = [97, 98, 99]; // "abc"
+        let pkcs8_bytes = EcdsaKeyPair::generate_pkcs8(EcdsaAlg::ECDSA_P256_SHA256_ASN1);
+        println!("pkcs8 bytes = {:?}", pkcs8_bytes);
+        let key_pair = EcdsaKeyPair::from_pkcs8(EcdsaAlg::ECDSA_P256_SHA256_ASN1, &pkcs8_bytes);
+        let sig = key_pair.sign(&msg);
+        println!("sig = {:?}", sig);
+        println!("pub key = {:?}", key_pair.public_key());
+
+        let verify_result = ecdsa_verify(EcdsaAlg::ECDSA_P256_SHA256_ASN1, key_pair.public_key().as_ref(), &msg, &sig);
+        assert_eq!(verify_result, true);
     }
 }

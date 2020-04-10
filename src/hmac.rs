@@ -1,7 +1,6 @@
 /**
 * 密钥hash消息认证码
 */
-use ring::digest as rdigest;
 use ring::hmac;
 
 /**

@@ -200,7 +200,7 @@ pub fn jwt_sign(msg: &str, sk: SignKey, alg: JwtAlg) -> String {
     match sig {
         Ok(sig) => sig,
         Err(e) => {
-            println!("jwt sign failed ---- msg = {:?}, alg = {:?}", msg, alg);
+            println!("jwt sign failed ---- msg = {:?}, alg = {:?}, error = {:?}", msg, alg, e.to_string());
             "".to_string()
         }
     }
@@ -270,7 +270,7 @@ pub fn jwt_verify(sig: &str, msg: &str, vk: &VerifyKey, alg: JwtAlg) -> bool {
     match res {
         Ok(res) => res,
         Err(e) => {
-            println!("jwt verify failed ---- sig = {:?}, msg = {:?}, vk = {:?}, alg = {:?}", sig, msg, vk, alg);
+            println!("jwt verify failed ---- sig = {:?}, msg = {:?}, vk = {:?}, alg = {:?}, error = {:?}", sig, msg, vk, alg, e.to_string());
             false
         }
     }

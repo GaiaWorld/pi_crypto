@@ -1,7 +1,6 @@
 #[cfg(test)]
 extern crate pi_crypto;
 
-use std::thread;
 use std::sync::Arc;
 use pi_crypto::bls::*;
 
@@ -98,8 +97,8 @@ fn test_bls() {
         let pub_key0 = bls_public_key_share(mpk.as_ref().unwrap(), 3, &id0);
         let pub_key1 = bls_public_key_share(mpk.as_ref().unwrap(), 3, &id1);
         let pub_key2 = bls_public_key_share(mpk.as_ref().unwrap(), 3, &id2);
-        let pub_key3 = bls_public_key_share(mpk.as_ref().unwrap(), 3, &id3);
-        let pub_key4 = bls_public_key_share(mpk.as_ref().unwrap(), 3, &id4);
+        let _pub_key3 = bls_public_key_share(mpk.as_ref().unwrap(), 3, &id3);
+        let _pub_key4 = bls_public_key_share(mpk.as_ref().unwrap(), 3, &id4);
 
         let mut pub_vec = BlsPubKeyVec::new(3);
         bls_add_public_key_to_vec(&mut pub_vec, pub_key0.as_ref().unwrap());
@@ -118,8 +117,8 @@ fn test_bls() {
         let sig0 = bls_sign(sec_key0.as_ref().unwrap(), bin.clone());
         let sig1 = bls_sign(sec_key1.as_ref().unwrap(), bin.clone());
         let sig2 = bls_sign(sec_key2.as_ref().unwrap(), bin.clone());
-        let sig3 = bls_sign(sec_key3.as_ref().unwrap(), bin.clone());
-        let sig4 = bls_sign(sec_key4.as_ref().unwrap(), bin.clone());
+        let _sig3 = bls_sign(sec_key3.as_ref().unwrap(), bin.clone());
+        let _sig4 = bls_sign(sec_key4.as_ref().unwrap(), bin.clone());
 
         let mut sig_vec = BlsSigVec::new(3);
         bls_add_signature_to_vec(&mut sig_vec, sig0.as_ref().unwrap());
