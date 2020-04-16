@@ -1,9 +1,7 @@
 /**
 * 基于secp256k1的签名算法
 */
-use secp256k1::key::PublicKey;
-use secp256k1::key::SecretKey;
-use secp256k1::{Message, Secp256k1, Signature};
+use secp256k1::{Message, sign, SecretKey, PublicKey, Signature, verify};
 
 use ring::signature::{KeyPair, RsaKeyPair, EcdsaKeyPair as EcKeyPair, ECDSA_P256_SHA256_ASN1_SIGNING, ECDSA_P384_SHA384_ASN1_SIGNING, ECDSA_P256_SHA256_ASN1, ECDSA_P384_SHA384_ASN1};
 use ring::{rand, signature};
@@ -12,7 +10,7 @@ use ring::{rand, signature};
 * 基于secp256k1的签名算法对象
 */
 pub struct ECDSASecp256k1 {
-    ctx: Secp256k1,
+
 }
 
 impl ECDSASecp256k1 {
@@ -22,7 +20,7 @@ impl ECDSASecp256k1 {
     */
     pub fn new() -> Self {
         ECDSASecp256k1 {
-            ctx: Secp256k1::new(),
+
         }
     }
 
@@ -33,14 +31,14 @@ impl ECDSASecp256k1 {
     * @returns 返回签名
     */
     pub fn sign(&self, msg: &[u8], sk: &[u8]) -> Vec<u8> {
-        let sk = match SecretKey::from_slice(&self.ctx, sk) {
+        let sk = match SecretKey::parse_slice(sk) {
             Ok(sk) => sk,
             Err(e) => {
                 println!("decode secret key error = {:?}", e);
                 return vec![]
             }
         };
-        let msg = match Message::from_slice(msg) {
+        let msg = match Message::parse_slice(msg) {
             Ok(msg) => msg,
             Err(e) => {
                 println!("ecdsa decode msg error = {:?}, msg = {:?}", e, msg);
@@ -48,15 +46,9 @@ impl ECDSASecp256k1 {
             }
         };
 
-        match self.ctx.sign(&msg, &sk) {
-            Ok(signed) => {
-                signed.serialize_der(&self.ctx)
-            }
-            Err(e) => {
-                println!("esdsa serialize sig error = {:?}", e);
-                vec![]
-            }
-        }
+        let sig = sign(&msg, &sk);
+
+        sig.0.serialize_der().as_ref().to_vec()
     }
 
     /**
@@ -67,21 +59,21 @@ impl ECDSASecp256k1 {
     * @returns 返回验证签名是否成功
     */
     pub fn verify(&self, msg: &[u8], sig: &[u8], pk: &[u8]) -> bool {
-        let msg = match Message::from_slice(msg) {
+        let msg = match Message::parse_slice(msg) {
             Ok(msg) => msg,
             Err(e) => {
                 println!("ecdsa decode msg error = {:?}, msg = {:?}", e, msg);
                 return false
             }
         };
-        let pk = match PublicKey::from_slice(&self.ctx, pk) {
+        let pk = match PublicKey::parse_slice(pk, None) {
             Ok(pk) => pk,
             Err(e) => {
                 println!("ecdsa decode publick key error = {:?}, pk = {:?}", e, pk);
                 return false
             }
         };
-        let sig = match Signature::from_der(&self.ctx, sig) {
+        let sig = match Signature::parse_der(sig) {
             Ok(sig) => sig,
             Err(e) => {
                 println!("ecdsa decode sig error = {:?}, sig = {:?}", e, sig);
@@ -89,7 +81,7 @@ impl ECDSASecp256k1 {
             }
         };
 
-        self.ctx.verify(&msg, &sig, &pk).is_ok()
+        verify(&msg, &sig, &pk)
     }
 }
 
