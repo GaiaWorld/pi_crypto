@@ -9,7 +9,7 @@ rust-crypto = "0.2.36"
 siphasher = "0.1.1"
 hash_value = { path = "../pi_math/hash_value" }
 ring = "0.16"
-secp256k1 = { git = "https://github.com/GaiaWorld/rust-secp256k1" }
+libsecp256k1 = "0.3.5"
 untrusted = "0.6.2"
 jsonwebtoken = "7"
 serde = {version = "1.0", features = ["derive"] }
