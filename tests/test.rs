@@ -2,8 +2,10 @@
 extern crate pi_crypto;
 
 use std::sync::Arc;
+#[cfg(feature="bls")]
 use pi_crypto::bls::*;
 
+#[cfg(feature="bls")]
 #[test]
 fn test_bls() {
     {

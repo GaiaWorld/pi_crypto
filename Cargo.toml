@@ -14,6 +14,9 @@ untrusted = "0.6.2"
 jsonwebtoken = "7"
 serde = {version = "1.0", features = ["derive"] }
 
+[features]
+bls = []
+
 [dev-dependencies]
 hex = "0.3.2"
 base64 = "0.12.0"
