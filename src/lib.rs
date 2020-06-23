@@ -12,6 +12,7 @@ extern crate jsonwebtoken;
 
 pub mod digest;
 pub mod ed25519;
+#[cfg(feature="bls")]
 pub mod bls;
 pub mod hmac;
 pub mod signature;
