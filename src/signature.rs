@@ -182,7 +182,7 @@ impl Rsa {
     * @param pk RSA公钥
     * @returns 返回验证签名是否成功
     */
-    pub fn verify(&self, padAlg: PaddingAlg, msg: &[u8], sig: &[u8], pk: &[u8]) -> bool {
+    pub fn verify(padAlg: PaddingAlg, msg: &[u8], sig: &[u8], pk: &[u8]) -> bool {
         match padAlg {
             PaddingAlg::RSA_PKCS1_SHA256 => {
                 signature::UnparsedPublicKey::new(&signature::RSA_PKCS1_2048_8192_SHA256, pk).verify(msg, sig)
@@ -327,7 +327,7 @@ mod tests {
         let rsa = Rsa::fromPKCS8(sk);
         let pk = rsa.public_key();
         let sig = rsa.sign(PaddingAlg::RSA_PKCS1_SHA256, MESSAGE);
-        assert!(rsa.verify(PaddingAlg::RSA_PKCS1_SHA256, MESSAGE, &sig, &pk));
+        assert!(Rsa::verify(PaddingAlg::RSA_PKCS1_SHA256, MESSAGE, &sig, &pk));
     }
 
     #[test]
