@@ -2,9 +2,9 @@
 * 基于secp256k1的签名算法
 */
 use secp256k1::{Message, sign, SecretKey, PublicKey, Signature, verify};
-
 use ring::signature::{KeyPair, RsaKeyPair, EcdsaKeyPair as EcKeyPair, ECDSA_P256_SHA256_ASN1_SIGNING, ECDSA_P384_SHA384_ASN1_SIGNING, ECDSA_P256_SHA256_ASN1, ECDSA_P384_SHA384_ASN1};
 use ring::{rand, signature};
+use simple_asn1::ASN1Block;
 
 /**
 * 基于secp256k1的签名算法对象
@@ -211,6 +211,34 @@ impl Rsa {
             }
         }
     }
+
+    pub fn alipay_verify(msg: &[u8], sig: &[u8], pk: &[u8]) -> bool {
+        let blocks = match simple_asn1::from_der(&pk) {
+            Ok(blocks) => blocks,
+            Err(_) => {
+                println!("malformed public key");
+                return false
+            }
+        };
+        let mut bit_strings = Vec::new();
+        find_bit_string(&blocks, &mut bit_strings);
+        if let Some(bs) = bit_strings.first() {
+            signature::UnparsedPublicKey::new(&signature::RSA_PKCS1_2048_8192_SHA256, bs).verify(msg, &sig)
+                    .is_ok()
+        } else {
+            false
+        }
+    }
+}
+
+fn find_bit_string(blocks: &[ASN1Block], mut result: &mut Vec<Vec<u8>>) {
+    for block in blocks.iter() {
+        match block {
+            ASN1Block::BitString(_, _, bytes) => result.push(bytes.to_vec()),
+            ASN1Block::Sequence(_, blocks) => find_bit_string(&blocks[..], &mut result),
+            _ => (),
+        }
+    }
 }
 
 // NIST曲线, P256 和 p384
@@ -342,5 +370,14 @@ mod tests {
 
         let verify_result = ecdsa_verify(EcdsaAlg::ECDSA_P256_SHA256_ASN1, key_pair.public_key().as_ref(), &msg, &sig);
         assert_eq!(verify_result, true);
+    }
+
+    #[test]
+    fn test_alipay_verify() {
+        let msg = br#"app_id=2018101761712502&auth_app_id=2018101761712502&buyer_id=2088202466133777&buyer_logon_id=446***@qq.com&buyer_pay_amount=0.01&charset=utf-8&fund_bill_list=[{"amount":"0.01","fundChannel":"ALIPAYACCOUNT"}]&gmt_create=2020-08-31 16:16:23&gmt_payment=2020-08-31 16:16:24&invoice_amount=0.01&notify_id=2020083100222161625033771438477577&notify_time=2020-08-31 16:16:25&notify_type=trade_status_sync&out_trade_no=104783005432152064&point_amount=0.00&receipt_amount=0.01&seller_email=register@kupay.io&seller_id=2088231960756623&subject=test&total_amount=0.01&trade_no=2020083122001433771402548536&trade_status=TRADE_SUCCESS&version=1.0"#;
+        let pk = base64::decode("MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAshixpgMR0jue/F2Wkq9Sf7Srd68uV9iJjfLMEuNl6iI8p3bp8zLkQd0hicm8oN7+L2SNstblROIpSNhBFPmCnl5wNLcsTZ04xNcmBbZKWZskrUVyQoiZ4haQQ2EQa7ScQlMHoupFMSxJVkFNznndjgVEOYzvonxfDPYWAtZ/6JhFKCJyh7WWMZEY5N+itx6nrSlq6Y9a54uOpUNdpontLnZ/Lh4TWC99Wwnt1cWxoL3wqodOp671FBlKXvhJb6y/p1oWBGSpXoxaFINpdNzTEhi5QgSFS4NwLVTO0fX7/2oxJDbJZhIdYoX7uOoweahyfCbUNZ+hBrVO3taTfZV91QIDAQAB").unwrap();
+        let sig = base64::decode("WZlREg2BUvHZMhXRrbj1PBUqpyI4T0BPWOSeEW3BqYYSICMbIKXrXvdESBWtnjvrUEsu27Sq9LTbXG5fA4P+q6AK7oofxd0NfGtxGFR3h9y9T/w8oxkSAcnEmTbUM6RD7BTtUF9d9L3uHswRdMgygwEUscEdk1xs9/dzGhZAFK1g3wYKtVOaYyO2N78fAQ/Ro/THYZgAoTlEIFz2Yeyyy+dp9jObOQ3lgtgg0qGUtdT23PeSVsXjai0PWoThQmgRucrptxWagLsbvwirYpaYfbetjq+Rxn5mr1VwXgEjkL1Yeb5hb917QGDFHyG2rNS38m/XZ1Wjs1uHo2JXcnEWIA==").unwrap();
+
+        assert!(Rsa::alipay_verify(msg, &sig, &pk))
     }
 }
