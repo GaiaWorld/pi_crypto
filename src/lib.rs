@@ -9,6 +9,7 @@ extern crate ring;
 extern crate secp256k1;
 extern crate untrusted;
 extern crate jsonwebtoken;
+extern crate simple_asn1;
 
 pub mod digest;
 pub mod ed25519;
