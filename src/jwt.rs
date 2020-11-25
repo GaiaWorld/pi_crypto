@@ -16,7 +16,7 @@ pub enum JwtAlg {
     PS512,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SignKey {
     jwt_key_type: JwtKeyType,
     bin: Option<Vec<u8>>,
@@ -276,7 +276,7 @@ pub fn jwt_verify(sig: &str, msg: &str, vk: &VerifyKey, alg: JwtAlg) -> bool {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 enum JwtKeyType {
     RSA_PEM,
     RSA_DER,
