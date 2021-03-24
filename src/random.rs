@@ -1,17 +1,13 @@
-/**
-* 安全的随机数生成器
-*/
+//! 安全的随机数生成器
+
 use ring::rand::{SecureRandom, SystemRandom};
 
-/**
-* 获取一个安全随机数
-* @param len 随机数大小
-* @returns 返回安全随机数
-*/
+/// 获取指定长度的密码学安全随机数据
 pub fn genSecureRandBytes(len: usize) -> Vec<u8> {
     let mut dst = vec![0; len];
     let r = SystemRandom::new();
-    r.fill(&mut dst).expect("Fatal error: can't get rand bytes from system");
+    r.fill(&mut dst)
+        .expect("Fatal error: can't get rand bytes from system");
 
     dst
 }
