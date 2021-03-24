@@ -1,24 +1,25 @@
 /**
-* 基于椭圆曲线的高效数字签名算法
+* 基于ed25519椭圆曲线的高效数字签名算法
 */
-pub use rcrypto::digest::Digest;
-use rcrypto::ed25519;
+use crypto::ed25519;
 use hash_value::{H256, H512};
 
 /**
 * 用于公钥交换
-* @param public_key 待交换的公钥
-* @param private_key 私钥
+* 
+* @param public_key 对方的公钥
+* @param private_key 己方的私钥
 * @returns 返回用于交换的公钥
 */
 #[inline]
-pub fn exchange(public_key: &[u8], private_key: &[u8]) -> H256 {
-	let shared_mont_x = ed25519::exchange(public_key, private_key);
+pub fn exchange(peer_public_key: &[u8], local_private_key: &[u8]) -> H256 {
+	let shared_mont_x = ed25519::exchange(peer_public_key, local_private_key);
     H256::from(shared_mont_x)
 }
 
 /**
-* 生成密钥对
+* 生成ed25519密钥对
+* 
 * @param seed 生成密钥的随机种子
 * @returns 返回私钥和公钥
 */
@@ -30,6 +31,7 @@ pub fn keypair(seed: &[u8]) -> (H512, H256)  {
 
 /**
 * 签名
+* 
 * @param message 待签名的数据
 * @param secret_key 私钥
 * @returns 返回签名
@@ -42,7 +44,8 @@ pub fn sign(message: &[u8], secret_key: &[u8]) -> H512 {
 
 /**
 * 验证签名
-* @param message 已签名的数据
+*
+* @param message 签名数据
 * @param public_key 公钥
 * @param signature 签名
 * @returns 返回验证签名是否成功

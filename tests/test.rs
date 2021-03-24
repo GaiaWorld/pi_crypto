@@ -1,7 +1,3 @@
-#[cfg(test)]
-extern crate pi_crypto;
-
-use std::sync::Arc;
 #[cfg(feature="bls")]
 use pi_crypto::bls::*;
 
@@ -111,7 +107,7 @@ fn test_bls() {
         assert!(mpk0.is_some());
         assert!(bls_public_key_is_equal(mpk0.as_ref().unwrap(), mpk.as_ref().unwrap()));
 
-        let bin = Arc::new(vec![10, 10, 10, 10, 10, 10]);
+        let bin = std::sync::Arc::new(vec![10, 10, 10, 10, 10, 10]);
         let sig = bls_sign(sec_key.as_ref().unwrap(), bin.clone());
         assert!(sig.is_some());
         assert!(bls_verify(sig.as_ref().unwrap(), pub_key.as_ref().unwrap(), bin.clone()));

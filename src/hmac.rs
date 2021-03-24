@@ -9,7 +9,7 @@ use ring::hmac;
 pub struct Hmac;
 
 /**
-* SHA加密算法类型
+* SHA哈希算法类型
 */
 pub enum DigestAlgorithm {
 	SHA1,
@@ -20,8 +20,9 @@ pub enum DigestAlgorithm {
 
 impl Hmac {
     /**
-    * 使用指定的SHA加密算法和密钥，对数据进行签名
-    * @param alg SHA加密算法类型
+    * 使用指定的SHA哈希算法和密钥，对数据进行签名
+    *
+    * @param alg SHA哈希算法类型
     * @param key 密钥
     * @param data 待签名的数据
     * @returns 返回签名
@@ -44,8 +45,9 @@ impl Hmac {
     }
 
     /**
-    * 验证通过指定SHA加密算法和密钥进行加密的签名
-    * @param alg SHA加密算法类型
+    * 验证通过指定SHA哈希算法和密钥进行加密的签名
+    *
+    * @param alg SHA哈希算法类型
     * @param key 密钥
     * @param data 已签名的数据
     * @param signature 签名

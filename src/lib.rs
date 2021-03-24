@@ -1,15 +1,13 @@
 #![allow(non_snake_case)]
 #![allow(non_camel_case_types)]
 
-extern crate libc;
-extern crate crypto as rcrypto;
-extern crate hash_value;
-extern crate siphasher;
-extern crate ring;
-extern crate secp256k1;
-extern crate untrusted;
-extern crate jsonwebtoken;
-extern crate simple_asn1;
+//! 常用加密码学算法
+//! # 哈希算法
+//! 
+//! # 签名算法
+//! # hmac算法
+//! # jwt算法
+//! # 密码学安全的随机数
 
 pub mod digest;
 pub mod ed25519;
@@ -19,8 +17,3 @@ pub mod hmac;
 pub mod signature;
 pub mod random;
 pub mod jwt;
-
-#[cfg(test)]
-extern crate hex;
-#[cfg(test)]
-extern crate base64;

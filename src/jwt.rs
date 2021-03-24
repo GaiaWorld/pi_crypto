@@ -1,6 +1,11 @@
+//！ 
+//！ # json web token
+//！
+
 use jsonwebtoken::{EncodingKey, DecodingKey, Algorithm};
 use jsonwebtoken::crypto::{sign, verify};
 
+/// json web token 支持的签名算法种类
 #[derive(Debug)]
 pub enum JwtAlg {
     HS256,
@@ -16,6 +21,7 @@ pub enum JwtAlg {
     PS512,
 }
 
+/// jwt 签名密钥
 #[derive(Debug, Clone)]
 pub struct SignKey {
     jwt_key_type: JwtKeyType,
@@ -24,6 +30,12 @@ pub struct SignKey {
 }
 
 impl SignKey {
+    /*
+    * 从一个私密二进制数据构造签名的密钥
+    *
+    * @param secret 私密数据
+    * @returns SignKey 签名对象
+    */
     pub fn from_secret(secret: &[u8],) -> Self {
         Self {
             jwt_key_type: JwtKeyType::HMAC,
@@ -32,6 +44,12 @@ impl SignKey {
         }
     }
 
+    /*
+    * 从base64编码的二进制私密数据构造SignKey对象
+    *
+    * @param secret 以base64编码的私密数据
+    * @returns SignKey 签名对象
+    */
     pub fn from_base64_secret(secret: &str) -> Self {
         Self {
             jwt_key_type: JwtKeyType::HMAC_BASE64,
@@ -40,6 +58,9 @@ impl SignKey {
         }
     }
 
+    /*
+    *
+    */
     pub fn from_rsa_pem(key: &[u8]) -> Self {
         Self {
             jwt_key_type: JwtKeyType::RSA_PEM,
@@ -48,6 +69,9 @@ impl SignKey {
         }
     }
 
+    /*
+    *
+    */
     pub fn from_rsa_der(key: &[u8]) -> Self {
         Self {
             jwt_key_type: JwtKeyType::RSA_DER,
@@ -56,6 +80,9 @@ impl SignKey {
         }
     }
 
+    /*
+    *
+    */
     pub fn from_ec_pem(key: &[u8]) -> Self {
         Self {
             jwt_key_type: JwtKeyType::EC_PEM,
@@ -64,6 +91,9 @@ impl SignKey {
         }
     }
 
+    /*
+    *
+    */
     pub fn from_ec_der(key: &[u8]) -> Self {
         Self {
             jwt_key_type: JwtKeyType::EC_DER,
@@ -200,7 +230,7 @@ pub fn jwt_sign(msg: &str, sk: SignKey, alg: JwtAlg) -> String {
     match sig {
         Ok(sig) => sig,
         Err(e) => {
-            println!("jwt sign failed ---- msg = {:?}, alg = {:?}, error = {:?}", msg, alg, e.to_string());
+            println!("jwt sign failed ---- msg = {:?}, alg = {:?}, error = {:?}", msg, alg, e);
             "".to_string()
         }
     }
@@ -221,7 +251,7 @@ fn verify_internal(sig: &str, msg: &str, vk: &VerifyKey, alg: Algorithm) -> Resu
                 JwtKeyType::RSA_PEM => DecodingKey::from_rsa_pem(vk.bin.as_ref().unwrap()).unwrap(),
                 JwtKeyType::RSA_DER => DecodingKey::from_rsa_der(vk.bin.as_ref().unwrap()),
                 JwtKeyType::RSA_N_E => {
-                    let rsa_pub_key = vk.string.as_ref().unwrap().split(":").collect::<Vec<&str>>();
+                    let rsa_pub_key = vk.string.as_ref().unwrap().split(':').collect::<Vec<&str>>();
                     DecodingKey::from_rsa_components(rsa_pub_key[0], rsa_pub_key[1])
                 }
                 _ => return  Err("RSA verify key can't derive from other methods".to_string())
@@ -270,7 +300,7 @@ pub fn jwt_verify(sig: &str, msg: &str, vk: &VerifyKey, alg: JwtAlg) -> bool {
     match res {
         Ok(res) => res,
         Err(e) => {
-            println!("jwt verify failed ---- sig = {:?}, msg = {:?}, vk = {:?}, alg = {:?}, error = {:?}", sig, msg, vk, alg, e.to_string());
+            println!("jwt verify failed ---- sig = {:?}, msg = {:?}, vk = {:?}, alg = {:?}, error = {:?}", sig, msg, vk, alg, e);
             false
         }
     }
@@ -290,7 +320,7 @@ enum JwtKeyType {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use base64;
+    
     #[test]
     fn test_hmac_key() {
         let secret = "c2VjcmV0";

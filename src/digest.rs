@@ -1,13 +1,8 @@
-/**
-* SHA加密算法
-*/
 use ring::digest as rdigest;
-use rcrypto::md5::Md5;
-pub use rcrypto::digest::Digest;
+use crypto::md5::Md5;
+use crypto::digest::Digest;
 
-/**
-* SHA加密算法类型
-*/
+/// SHA哈希算法类型
 pub enum DigestAlgorithm {
 	MD5,
 	SHA1,
@@ -17,10 +12,11 @@ pub enum DigestAlgorithm {
 }
 
 /**
-* SHA加密
-* @param alg SHA加密算法类型
-* @param data 待加密的数据
-* @returns 返回加密数据
+* 计算二进制数据的SHA哈希
+*
+* @param alg SHA哈希算法类型
+* @param data 待哈希的数据
+* @returns 返回哈希值
 */
 pub fn digest(alg: DigestAlgorithm, data: &[u8]) -> Vec<u8> {
 	match alg {
