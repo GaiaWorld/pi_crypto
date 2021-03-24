@@ -1,11 +1,11 @@
+use libc::{c_char, c_int, c_uchar, c_void, size_t};
+use std::ffi::CString;
+use std::ops::Drop;
 /**
 * 基于BLS的门限签名算法
 */
 use std::ptr::null;
 use std::sync::Arc;
-use std::ops::Drop;
-use std::ffi::CString;
-use libc::{c_void, c_uchar, c_char, c_int, size_t};
 
 #[link(name = "blsc")]
 extern "C" {
@@ -24,8 +24,16 @@ extern "C" {
     fn blscGetPop(secKey: *const c_void) -> *const c_void;
     fn blscVerifyPop(sig: *const c_void, pubKey: *const c_void) -> c_int;
     fn blscIdSerialize(buf: *mut c_void, maxBufSize: size_t, blsId: *const c_void) -> size_t;
-    fn blscSecretKeySerialize(buf: *mut c_void, maxBufSize: size_t, secKey: *const c_void) -> size_t;
-    fn blscPublicKeySerialize(buf: *mut c_void, maxBufSize: size_t, pubKey: *const c_void) -> size_t;
+    fn blscSecretKeySerialize(
+        buf: *mut c_void,
+        maxBufSize: size_t,
+        secKey: *const c_void,
+    ) -> size_t;
+    fn blscPublicKeySerialize(
+        buf: *mut c_void,
+        maxBufSize: size_t,
+        pubKey: *const c_void,
+    ) -> size_t;
     fn blscSignatureSerialize(buf: *mut c_void, maxBufSize: size_t, sig: *const c_void) -> size_t;
     fn blscIdDeserialize(buf: *const c_void, bufSize: size_t) -> *const c_void;
     fn blscSecretKeyDeserialize(buf: *const c_void, bufSize: size_t) -> *const c_void;
@@ -43,19 +51,45 @@ extern "C" {
     fn blscGetIdFromVec(blsIdVec: *const c_void, index: size_t) -> *const c_void;
     fn blscAddIdToVec(blsIdVec: *const c_void, k: size_t, blsId: *const c_void) -> *const c_void;
     fn blscGetSecretKeyFromVec(secKeyVec: *const c_void, index: size_t) -> *const c_void;
-    fn blscAddSecretKeyToVec(secKeyVec: *const c_void, k: size_t, secKey: *const c_void) -> *const c_void;
+    fn blscAddSecretKeyToVec(
+        secKeyVec: *const c_void,
+        k: size_t,
+        secKey: *const c_void,
+    ) -> *const c_void;
     fn blscGetSecretKeyVec(secKeyVec: *const c_void) -> *const c_void;
     fn blscGetPublicKeyFromVec(pubKeyVec: *const c_void, index: size_t) -> *const c_void;
-    fn blscAddPublicKeyToVec(pubKeyVec: *const c_void, k: size_t, pubKey: *const c_void) -> *const c_void;
+    fn blscAddPublicKeyToVec(
+        pubKeyVec: *const c_void,
+        k: size_t,
+        pubKey: *const c_void,
+    ) -> *const c_void;
     fn blscGetPublicKeyVec(pubKeyVec: *const c_void) -> *const c_void;
     fn blscGetSignatureFromVec(sigIdVec: *const c_void, index: size_t) -> *const c_void;
-    fn blscAddSignatureToVec(sigVec: *const c_void, k: size_t, sig: *const c_void) -> *const c_void;
+    fn blscAddSignatureToVec(sigVec: *const c_void, k: size_t, sig: *const c_void)
+        -> *const c_void;
     fn blscGetSignatureVec(sigVec: *const c_void) -> *const c_void;
-    fn blscSecretKeyRecover(secKeyVec: *const c_void, blsIdVec: *const c_void, n: size_t) -> *const c_void;
-    fn blscPublicKeyRecover(pubKeyVec: *const c_void, blsIdVec: *const c_void, n: size_t) -> *const c_void;
-    fn blscSignatureRecover(sigVec: *const c_void, blsIdVec: *const c_void, n: size_t) -> *const c_void;
+    fn blscSecretKeyRecover(
+        secKeyVec: *const c_void,
+        blsIdVec: *const c_void,
+        n: size_t,
+    ) -> *const c_void;
+    fn blscPublicKeyRecover(
+        pubKeyVec: *const c_void,
+        blsIdVec: *const c_void,
+        n: size_t,
+    ) -> *const c_void;
+    fn blscSignatureRecover(
+        sigVec: *const c_void,
+        blsIdVec: *const c_void,
+        n: size_t,
+    ) -> *const c_void;
     fn blscSign(secKey: *const c_void, m: *const c_void, size: size_t) -> *const c_void;
-    fn blscVerify(sig: *const c_void, pubKey: *const c_void, m: *const c_void, size: size_t) -> c_int;
+    fn blscVerify(
+        sig: *const c_void,
+        pubKey: *const c_void,
+        m: *const c_void,
+        size: size_t,
+    ) -> c_int;
     fn blscFree(ptr: *const c_void);
 }
 
@@ -63,12 +97,12 @@ extern "C" {
 * BLS算法的曲线类型
 */
 pub enum Curve {
-	MclBnCurveFp254BNb = 0x0,
-	MclBnCurveFp382_1,
-	MclBnCurveFp382_2,
-	MclBnCurveFp462,
-	MclBnCurveSNARK1,
-	MclBls12CurveFp381,
+    MclBnCurveFp254BNb = 0x0,
+    MclBnCurveFp382_1,
+    MclBnCurveFp382_2,
+    MclBnCurveFp462,
+    MclBnCurveSNARK1,
+    MclBls12CurveFp381,
 }
 
 /**
@@ -234,7 +268,7 @@ pub fn bls_get_field_order(max_buf_size: usize) -> Option<String> {
         if len == 0 {
             return None;
         }
-        
+
         buf.truncate(len as usize);
         match String::from_utf8(buf) {
             Ok(string) => Some(string),
@@ -244,9 +278,7 @@ pub fn bls_get_field_order(max_buf_size: usize) -> Option<String> {
 }
 
 pub fn bls_get_generator_of_g2() -> BlsPublicKey {
-    unsafe {
-        BlsPublicKey(blscGetGeneratorOfG2(), true)
-    }
+    unsafe { BlsPublicKey(blscGetGeneratorOfG2(), true) }
 }
 
 /**
@@ -255,9 +287,7 @@ pub fn bls_get_generator_of_g2() -> BlsPublicKey {
 * @returns 返回BLS算法的成员唯一id
 */
 pub fn bls_id_set_int(x: i32) -> BlsId {
-    unsafe {
-        BlsId(blscIdSetInt(x), true)
-    }
+    unsafe { BlsId(blscIdSetInt(x), true) }
 }
 
 /**
@@ -310,7 +340,7 @@ pub fn bls_id_get_dec_str(max_buf_size: usize, id: &BlsId) -> Option<String> {
         if len == 0 {
             return None;
         }
-        
+
         buf.truncate(len as usize);
         match String::from_utf8(buf) {
             Ok(string) => Some(string),
@@ -337,7 +367,7 @@ pub fn bls_id_get_hex_str(max_buf_size: usize, id: &BlsId) -> Option<String> {
         if len == 0 {
             return None;
         }
-        
+
         buf.truncate(len as usize);
         match String::from_utf8(buf) {
             Ok(string) => Some(string),
@@ -439,7 +469,7 @@ pub fn bls_secret_key_serialize(max_buf_size: usize, sec_key: &BlsSecretKey) -> 
         if len == 0 {
             return None;
         }
-        
+
         buf.truncate(len as usize);
         Some(buf)
     }
@@ -459,7 +489,7 @@ pub fn bls_public_key_serialize(max_buf_size: usize, pub_key: &BlsPublicKey) -> 
         if len == 0 {
             return None;
         }
-        
+
         buf.truncate(len as usize);
         Some(buf)
     }
@@ -479,7 +509,7 @@ pub fn bls_signature_serialize(max_buf_size: usize, sig: &BlsSignature) -> Optio
         if len == 0 {
             return None;
         }
-        
+
         buf.truncate(len as usize);
         Some(buf)
     }
@@ -611,7 +641,9 @@ pub fn bls_signature_is_equal(lhs: &BlsSignature, rhs: &BlsSignature) -> bool {
 * @param rhs 副BLS私钥
 */
 pub fn bls_secret_key_add(sec_key: &BlsSecretKey, rhs: &BlsSecretKey) {
-    unsafe { blscSecretKeyAdd(sec_key.0, rhs.0); }
+    unsafe {
+        blscSecretKeyAdd(sec_key.0, rhs.0);
+    }
 }
 
 /**
@@ -620,7 +652,9 @@ pub fn bls_secret_key_add(sec_key: &BlsSecretKey, rhs: &BlsSecretKey) {
 * @param rhs 副BLS公钥
 */
 pub fn bls_public_key_add(pub_key: &BlsPublicKey, rhs: &BlsPublicKey) {
-    unsafe { blscPublicKeyAdd(pub_key.0, rhs.0); }
+    unsafe {
+        blscPublicKeyAdd(pub_key.0, rhs.0);
+    }
 }
 
 /**
@@ -629,7 +663,9 @@ pub fn bls_public_key_add(pub_key: &BlsPublicKey, rhs: &BlsPublicKey) {
 * @param rhs 副BLS签名
 */
 pub fn bls_signature_add(sig: &BlsSignature, rhs: &BlsSignature) {
-    unsafe { blscSignatureAdd(sig.0, rhs.0); }
+    unsafe {
+        blscSignatureAdd(sig.0, rhs.0);
+    }
 }
 
 /**
@@ -839,7 +875,11 @@ pub fn bls_get_signature_key_vec(vec: &BlsSigVec) -> Option<BlsSignature> {
 * @param n 向量的长度
 * @returns 返回主私钥，可为空
 */
-pub fn bls_secret_key_recover(sec_key_vec: &BlsSecKeyVec, id_vec: &BlsIdVec, n: usize) -> Option<BlsSecretKey> {
+pub fn bls_secret_key_recover(
+    sec_key_vec: &BlsSecKeyVec,
+    id_vec: &BlsIdVec,
+    n: usize,
+) -> Option<BlsSecretKey> {
     unsafe {
         let ptr = blscSecretKeyRecover(sec_key_vec.0, id_vec.0, n);
         if ptr.is_null() {
@@ -856,7 +896,11 @@ pub fn bls_secret_key_recover(sec_key_vec: &BlsSecKeyVec, id_vec: &BlsIdVec, n: 
 * @param n 向量的长度
 * @returns 返回主公钥，可为空
 */
-pub fn bls_public_key_recover(pub_key_vec: &BlsPubKeyVec, id_vec: &BlsIdVec, n: usize) -> Option<BlsPublicKey> {
+pub fn bls_public_key_recover(
+    pub_key_vec: &BlsPubKeyVec,
+    id_vec: &BlsIdVec,
+    n: usize,
+) -> Option<BlsPublicKey> {
     unsafe {
         let ptr = blscPublicKeyRecover(pub_key_vec.0, id_vec.0, n);
         if ptr.is_null() {
@@ -873,7 +917,11 @@ pub fn bls_public_key_recover(pub_key_vec: &BlsPubKeyVec, id_vec: &BlsIdVec, n: 
 * @param n 向量的长度
 * @returns 返回主签名，可为空
 */
-pub fn bls_signature_recover(sig_vec: &BlsSigVec, id_vec: &BlsIdVec, n: usize) -> Option<BlsSignature> {
+pub fn bls_signature_recover(
+    sig_vec: &BlsSigVec,
+    id_vec: &BlsIdVec,
+    n: usize,
+) -> Option<BlsSignature> {
     unsafe {
         let ptr = blscSignatureRecover(sig_vec.0, id_vec.0, n);
         if ptr.is_null() {
@@ -914,4 +962,3 @@ pub fn bls_verify(sig: &BlsSignature, pub_key: &BlsPublicKey, data: Arc<Vec<u8>>
         true
     }
 }
-

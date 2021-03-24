@@ -1,48 +1,39 @@
-/**
-* 基于secp256k1的签名算法
-*/
-use secp256k1::{Message, sign, SecretKey, PublicKey, Signature, verify};
-use ring::signature::{KeyPair, RsaKeyPair, EcdsaKeyPair as EcKeyPair, ECDSA_P256_SHA256_ASN1_SIGNING, ECDSA_P384_SHA384_ASN1_SIGNING, ECDSA_P256_SHA256_ASN1, ECDSA_P384_SHA384_ASN1};
+//! ecdsa, rsa 签名算法
+
+use ring::signature::{
+    EcdsaKeyPair as EcKeyPair, KeyPair, RsaKeyPair, ECDSA_P256_SHA256_ASN1,
+    ECDSA_P256_SHA256_ASN1_SIGNING, ECDSA_P384_SHA384_ASN1, ECDSA_P384_SHA384_ASN1_SIGNING,
+};
 use ring::{rand, signature};
+use secp256k1::{sign, verify, Message, PublicKey, SecretKey, Signature};
 use simple_asn1::ASN1Block;
 
-/**
-* 基于secp256k1的签名算法对象
-*/
-pub struct ECDSASecp256k1 {
-
-}
+/// 基于secp256k1的签名算法对象
+pub struct ECDSASecp256k1 {}
 
 impl ECDSASecp256k1 {
-    /**
-    * 构建基于secp256k1的签名算法对象
-    * @returns 返回基于secp256k1的签名算法对象
-    */
+    /// 构建基于secp256k1的签名算法对象
     pub fn new() -> Self {
-        ECDSASecp256k1 {
-
-        }
+        ECDSASecp256k1 {}
     }
 
-    /**
-    * 签名
-    * @param msg 待签名数据，长度为32字节
-    * @param sk 私钥，长度为32字节
-    * @returns 返回签名
-    */
+    /// 签名
+    ///
+    /// msg: 待签名数据，长度为32字节
+    /// sk: 私钥，长度为32字节
     pub fn sign(&self, msg: &[u8], sk: &[u8]) -> Vec<u8> {
         let sk = match SecretKey::parse_slice(sk) {
             Ok(sk) => sk,
             Err(e) => {
                 println!("decode secret key error = {:?}", e);
-                return vec![]
+                return vec![];
             }
         };
         let msg = match Message::parse_slice(msg) {
             Ok(msg) => msg,
             Err(e) => {
                 println!("ecdsa decode msg error = {:?}, msg = {:?}", e, msg);
-                return vec![]
+                return vec![];
             }
         };
 
@@ -51,33 +42,31 @@ impl ECDSASecp256k1 {
         sig.0.serialize_der().as_ref().to_vec()
     }
 
-    /**
-    * 验证签名
-    * @param msg 已签名数据，长度为32字节
-    * @param sig 签名，长度为65~72字节
-    * @param pk 公钥，长度为33或65字节
-    * @returns 返回验证签名是否成功
-    */
+    /// 验证签名
+    ///
+    /// msg: 已签名数据，长度为32字节
+    /// sig: 签名，长度为65~72字节
+    /// pk: 公钥，长度为33或65字节
     pub fn verify(&self, msg: &[u8], sig: &[u8], pk: &[u8]) -> bool {
         let msg = match Message::parse_slice(msg) {
             Ok(msg) => msg,
             Err(e) => {
                 println!("ecdsa decode msg error = {:?}, msg = {:?}", e, msg);
-                return false
+                return false;
             }
         };
         let pk = match PublicKey::parse_slice(pk, None) {
             Ok(pk) => pk,
             Err(e) => {
                 println!("ecdsa decode publick key error = {:?}, pk = {:?}", e, pk);
-                return false
+                return false;
             }
         };
         let sig = match Signature::parse_der(sig) {
             Ok(sig) => sig,
             Err(e) => {
                 println!("ecdsa decode sig error = {:?}, sig = {:?}", e, sig);
-                return false
+                return false;
             }
         };
 
@@ -85,34 +74,28 @@ impl ECDSASecp256k1 {
     }
 }
 
-/**
-* RSA签名算法填充类型
-*/
+/// RSA签名算法填充类型
 pub enum PaddingAlg {
-    // PKCS
+    /// PKCS
     RSA_PKCS1_SHA256,
     RSA_PKCS1_SHA384,
     RSA_PKCS1_SHA512,
 
-    // Probabilistic signature scheme
+    /// Probabilistic signature scheme
     RSA_PSS_SHA256,
     RSA_PSS_SHA384,
     RSA_PSS_SHA512,
 }
 
-/**
-* RSA签名算法对象
-*/
+/// RSA签名算法对象
 pub struct Rsa {
     ctx: RsaKeyPair,
 }
 
 impl Rsa {
-    /**
-    * 从PKCS8格式的密钥数据生成RSA签名算法对象
-    * @param input PKCS8格式的密钥数据
-    * @returns 返回RSA签名算法对象
-    */
+    /// 从PKCS8格式的密钥数据生成RSA签名算法对象
+    ///
+    /// input: PKCS8格式的密钥数据
     pub fn fromPKCS8(input: &[u8]) -> Rsa {
         Rsa {
             ctx: RsaKeyPair::from_pkcs8(input).unwrap(),
@@ -120,19 +103,17 @@ impl Rsa {
     }
 
     /**
-    * 获取RSA公钥
-    * @returns 返回RSA公钥
-    */
+     * 获取RSA公钥
+     * @returns 返回RSA公钥
+     */
     pub fn public_key(&self) -> Vec<u8> {
         self.ctx.public_key().as_ref().to_vec()
     }
 
-    /**
-    * 使用当前RSA签名算法对象和指定的RSA签名算法填充类型，对指定的数据进行签名
-    * @param padAlg RSA签名算法填充类型
-    * @param msg 待签名的数据
-    * @returns 签名
-    */
+    /// 使用当前RSA签名算法对象和指定的RSA签名算法填充类型，对指定的数据进行签名
+    ///
+    /// padAlg: RSA签名算法填充类型
+    /// msg: 待签名的数据
     pub fn sign(&self, padAlg: PaddingAlg, msg: &[u8]) -> Vec<u8> {
         let mut signature = vec![0; self.ctx.public_modulus_len()];
         let rng = rand::SystemRandom::new();
@@ -174,57 +155,67 @@ impl Rsa {
         signature
     }
 
-    /**
-    * 验证使用指定的RSA签名算法填充类型和指定的RSA公钥的签名
-    * @param padAlg RSA签名算法填充类型
-    * @param msg 已签名的数据
-    * @param sig 签名
-    * @param pk RSA公钥
-    * @returns 返回验证签名是否成功
-    */
+    /// 验证使用指定的RSA签名算法填充类型和指定的RSA公钥的签名
+    ///
+    /// padAlg: RSA签名算法填充类型
+    /// msg: 已签名的数据
+    /// sig: 签名
+    /// pk: RSA公钥
     pub fn verify(padAlg: PaddingAlg, msg: &[u8], sig: &[u8], pk: &[u8]) -> bool {
         match padAlg {
             PaddingAlg::RSA_PKCS1_SHA256 => {
-                signature::UnparsedPublicKey::new(&signature::RSA_PKCS1_2048_8192_SHA256, pk).verify(msg, sig)
+                signature::UnparsedPublicKey::new(&signature::RSA_PKCS1_2048_8192_SHA256, pk)
+                    .verify(msg, sig)
                     .is_ok()
             }
             PaddingAlg::RSA_PKCS1_SHA384 => {
-                signature::UnparsedPublicKey::new(&signature::RSA_PKCS1_2048_8192_SHA384, pk).verify(msg, sig)
+                signature::UnparsedPublicKey::new(&signature::RSA_PKCS1_2048_8192_SHA384, pk)
+                    .verify(msg, sig)
                     .is_ok()
             }
             PaddingAlg::RSA_PKCS1_SHA512 => {
-                signature::UnparsedPublicKey::new(&signature::RSA_PKCS1_2048_8192_SHA512, pk).verify(msg, sig)
+                signature::UnparsedPublicKey::new(&signature::RSA_PKCS1_2048_8192_SHA512, pk)
+                    .verify(msg, sig)
                     .is_ok()
             }
 
             PaddingAlg::RSA_PSS_SHA256 => {
-                signature::UnparsedPublicKey::new(&signature::RSA_PSS_2048_8192_SHA256, pk).verify(msg, sig)
+                signature::UnparsedPublicKey::new(&signature::RSA_PSS_2048_8192_SHA256, pk)
+                    .verify(msg, sig)
                     .is_ok()
             }
             PaddingAlg::RSA_PSS_SHA384 => {
-                signature::UnparsedPublicKey::new(&signature::RSA_PSS_2048_8192_SHA384, pk).verify(msg, sig)
+                signature::UnparsedPublicKey::new(&signature::RSA_PSS_2048_8192_SHA384, pk)
+                    .verify(msg, sig)
                     .is_ok()
             }
             PaddingAlg::RSA_PSS_SHA512 => {
-                signature::UnparsedPublicKey::new(&signature::RSA_PSS_2048_8192_SHA512, pk).verify(msg, sig)
+                signature::UnparsedPublicKey::new(&signature::RSA_PSS_2048_8192_SHA512, pk)
+                    .verify(msg, sig)
                     .is_ok()
             }
         }
     }
 
+    /// 验证alipy签名
+    ///
+    /// msg: 签名的数据
+    /// sig: 签名
+    /// pk: 公钥
     pub fn alipay_verify(msg: &[u8], sig: &[u8], pk: &[u8]) -> bool {
         let blocks = match simple_asn1::from_der(&pk) {
             Ok(blocks) => blocks,
             Err(_) => {
                 println!("malformed public key");
-                return false
+                return false;
             }
         };
         let mut bit_strings = Vec::new();
         find_bit_string(&blocks, &mut bit_strings);
         if let Some(bs) = bit_strings.first() {
-            signature::UnparsedPublicKey::new(&signature::RSA_PKCS1_2048_8192_SHA256, bs).verify(msg, &sig)
-                    .is_ok()
+            signature::UnparsedPublicKey::new(&signature::RSA_PKCS1_2048_8192_SHA256, bs)
+                .verify(msg, &sig)
+                .is_ok()
         } else {
             false
         }
@@ -241,7 +232,7 @@ fn find_bit_string(blocks: &[ASN1Block], mut result: &mut Vec<Vec<u8>>) {
     }
 }
 
-// NIST曲线, P256 和 p384
+/// NIST曲线, P256 和 p384
 #[derive(Debug)]
 pub enum EcdsaAlg {
     // Signing of ASN.1 DER-encoded ECDSA signatures using the P-256 curve and SHA-256.
@@ -251,69 +242,95 @@ pub enum EcdsaAlg {
 }
 
 pub struct EcdsaKeyPair {
-    key_pair: EcKeyPair
+    key_pair: EcKeyPair,
 }
 
 impl EcdsaKeyPair {
-    // 产生pkcs8格式的密钥对
+    /// 产生pkcs8格式的密钥对
+    ///
+    /// alg: 产生密钥对的曲线类型
     pub fn generate_pkcs8(alg: EcdsaAlg) -> Vec<u8> {
         let rng = rand::SystemRandom::new();
         match alg {
             EcdsaAlg::ECDSA_P256_SHA256_ASN1 => {
-                signature::EcdsaKeyPair::generate_pkcs8(&ECDSA_P256_SHA256_ASN1_SIGNING, &rng).unwrap().as_ref().to_vec()
-            },
+                signature::EcdsaKeyPair::generate_pkcs8(&ECDSA_P256_SHA256_ASN1_SIGNING, &rng)
+                    .unwrap()
+                    .as_ref()
+                    .to_vec()
+            }
             EcdsaAlg::ECDSA_P384_SHA384_ASN1 => {
-                signature::EcdsaKeyPair::generate_pkcs8(&ECDSA_P384_SHA384_ASN1_SIGNING, &rng).unwrap().as_ref().to_vec()
-            },
+                signature::EcdsaKeyPair::generate_pkcs8(&ECDSA_P384_SHA384_ASN1_SIGNING, &rng)
+                    .unwrap()
+                    .as_ref()
+                    .to_vec()
+            }
         }
     }
 
-    // 从私钥和公钥构建密钥对
+    /// 从私钥和公钥构建密钥对
+    ///
+    /// alg: 产生密钥对的曲线类型
+    /// priv_key: 私钥
+    /// pub_key: 公钥
     pub fn from_private_key_and_public_key(alg: EcdsaAlg, priv_key: &[u8], pub_key: &[u8]) -> Self {
         match alg {
             EcdsaAlg::ECDSA_P256_SHA256_ASN1 => {
-                let key_pair = EcKeyPair::from_private_key_and_public_key(&ECDSA_P256_SHA256_ASN1_SIGNING, priv_key, pub_key).unwrap();
-                Self {
-                    key_pair
-                }
+                let key_pair = EcKeyPair::from_private_key_and_public_key(
+                    &ECDSA_P256_SHA256_ASN1_SIGNING,
+                    priv_key,
+                    pub_key,
+                )
+                .unwrap();
+                Self { key_pair }
             }
             EcdsaAlg::ECDSA_P384_SHA384_ASN1 => {
-                let key_pair = EcKeyPair::from_private_key_and_public_key(&ECDSA_P384_SHA384_ASN1_SIGNING, priv_key, pub_key).unwrap();
-                Self {
-                    key_pair
-                }
+                let key_pair = EcKeyPair::from_private_key_and_public_key(
+                    &ECDSA_P384_SHA384_ASN1_SIGNING,
+                    priv_key,
+                    pub_key,
+                )
+                .unwrap();
+                Self { key_pair }
             }
         }
     }
 
-    // 从pkcs8格式构建密钥对
+    /// 从pkcs8格式构建密钥对
+    ///
+    /// alg: 产生密钥对的曲线类型
+    /// pkcs: pkcs格式的私钥
     pub fn from_pkcs8(alg: EcdsaAlg, pkcs8: &[u8]) -> Self {
         let key_pair = match alg {
             EcdsaAlg::ECDSA_P256_SHA256_ASN1 => {
                 signature::EcdsaKeyPair::from_pkcs8(&ECDSA_P256_SHA256_ASN1_SIGNING, pkcs8).unwrap()
-            },
+            }
             EcdsaAlg::ECDSA_P384_SHA384_ASN1 => {
                 signature::EcdsaKeyPair::from_pkcs8(&ECDSA_P384_SHA384_ASN1_SIGNING, pkcs8).unwrap()
             }
         };
-        Self {
-            key_pair
-        }
+        Self { key_pair }
     }
 
-    // 签名
+    /// 签名
+    ///
+    /// msg: 签名数据
     pub fn sign(&self, msg: &[u8]) -> Vec<u8> {
         let rng = rand::SystemRandom::new();
         self.key_pair.sign(&rng, msg).unwrap().as_ref().to_vec()
     }
 
-    // 取得公钥
+    /// 获取公钥
     pub fn public_key(&self) -> Vec<u8> {
         self.key_pair.public_key().as_ref().to_vec()
     }
 }
 
-// 验证签名
+/// 验证ecdsa签名
+///
+/// alg: 产生密钥对的曲线类型
+/// pub_key: 公钥
+/// msg: 签名的数据
+/// sig: 签名
 pub fn ecdsa_verify(alg: EcdsaAlg, pub_key: &[u8], msg: &[u8], sig: &[u8]) -> bool {
     let public_key = match alg {
         EcdsaAlg::ECDSA_P256_SHA256_ASN1 => {
@@ -326,7 +343,7 @@ pub fn ecdsa_verify(alg: EcdsaAlg, pub_key: &[u8], msg: &[u8], sig: &[u8]) -> bo
 
     match public_key.verify(msg, sig) {
         Ok(()) => true,
-        Err(_) => false
+        Err(_) => false,
     }
 }
 
@@ -355,7 +372,12 @@ mod tests {
         let rsa = Rsa::fromPKCS8(sk);
         let pk = rsa.public_key();
         let sig = rsa.sign(PaddingAlg::RSA_PKCS1_SHA256, MESSAGE);
-        assert!(Rsa::verify(PaddingAlg::RSA_PKCS1_SHA256, MESSAGE, &sig, &pk));
+        assert!(Rsa::verify(
+            PaddingAlg::RSA_PKCS1_SHA256,
+            MESSAGE,
+            &sig,
+            &pk
+        ));
     }
 
     #[test]
@@ -368,7 +390,12 @@ mod tests {
         println!("sig = {:?}", sig);
         println!("pub key = {:?}", key_pair.public_key());
 
-        let verify_result = ecdsa_verify(EcdsaAlg::ECDSA_P256_SHA256_ASN1, key_pair.public_key().as_ref(), &msg, &sig);
+        let verify_result = ecdsa_verify(
+            EcdsaAlg::ECDSA_P256_SHA256_ASN1,
+            key_pair.public_key().as_ref(),
+            &msg,
+            &sig,
+        );
         assert_eq!(verify_result, true);
     }
 

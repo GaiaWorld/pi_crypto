@@ -1,11 +1,7 @@
-#[cfg(test)]
-extern crate pi_crypto;
-
-use std::sync::Arc;
-#[cfg(feature="bls")]
+#[cfg(feature = "bls")]
 use pi_crypto::bls::*;
 
-#[cfg(feature="bls")]
+#[cfg(feature = "bls")]
 #[test]
 fn test_bls() {
     {
@@ -22,22 +18,34 @@ fn test_bls() {
         let hex_str = "aabcdeABCDE0123789".to_string();
         let hex_id = bls_id_set_hex_str(hex_str.clone());
         assert!(hex_id.is_some());
-        assert!(bls_id_get_hex_str(32, hex_id.as_ref().unwrap()) == Some(hex_str.to_ascii_lowercase()));
+        assert!(
+            bls_id_get_hex_str(32, hex_id.as_ref().unwrap()) == Some(hex_str.to_ascii_lowercase())
+        );
 
         let hex_id = bls_id_set_hex_str(hex_str.clone());
         let hex_id_s = bls_id_serialize(32, hex_id.as_ref().unwrap());
         assert!(hex_id_s.is_some());
         let copy_hex_id = bls_id_deserialize(hex_id_s.unwrap());
         assert!(copy_hex_id.is_some());
-        assert!(bls_id_is_equal(hex_id.as_ref().unwrap(), copy_hex_id.as_ref().unwrap()));
+        assert!(bls_id_is_equal(
+            hex_id.as_ref().unwrap(),
+            copy_hex_id.as_ref().unwrap()
+        ));
 
-        let sec_key = bls_hash_to_secret_key("adsf;akjfasdfasdf097-89067.n*&%%^$)(K)KJHJFGOO".to_string().into_bytes());
+        let sec_key = bls_hash_to_secret_key(
+            "adsf;akjfasdfasdf097-89067.n*&%%^$)(K)KJHJFGOO"
+                .to_string()
+                .into_bytes(),
+        );
         assert!(sec_key.is_some());
         let sec_key_s = bls_secret_key_serialize(32, sec_key.as_ref().unwrap());
         assert!(sec_key_s.is_some());
         let copy_sec_key = bls_secret_key_deserialize(sec_key_s.unwrap());
         assert!(copy_sec_key.is_some());
-        assert!(bls_secret_key_is_equal(sec_key.as_ref().unwrap(), copy_sec_key.as_ref().unwrap()));
+        assert!(bls_secret_key_is_equal(
+            sec_key.as_ref().unwrap(),
+            copy_sec_key.as_ref().unwrap()
+        ));
 
         let mut secs = BlsSecKeyVec::new(3);
         bls_add_secret_key_to_vec(&mut secs, sec_key.as_ref().unwrap());
@@ -52,21 +60,40 @@ fn test_bls() {
         assert!(pub_key_s.is_some());
         let copy_pub_key = bls_public_key_deserialize(pub_key_s.unwrap());
         assert!(copy_pub_key.is_some());
-        assert!(bls_public_key_is_equal(pub_key.as_ref().unwrap(), copy_pub_key.as_ref().unwrap()));
+        assert!(bls_public_key_is_equal(
+            pub_key.as_ref().unwrap(),
+            copy_pub_key.as_ref().unwrap()
+        ));
 
         let mut pubs = BlsPubKeyVec::new(3);
         bls_add_public_key_to_vec(&mut pubs, pub_key.as_ref().unwrap());
-        bls_add_public_key_to_vec(&mut pubs, bls_get_public_key(bls_get_secret_key_from_vec(&secs, 1).as_ref().unwrap()).as_ref().unwrap());
-        bls_add_public_key_to_vec(&mut pubs, bls_get_public_key(bls_get_secret_key_from_vec(&secs, 2).as_ref().unwrap()).as_ref().unwrap());
+        bls_add_public_key_to_vec(
+            &mut pubs,
+            bls_get_public_key(bls_get_secret_key_from_vec(&secs, 1).as_ref().unwrap())
+                .as_ref()
+                .unwrap(),
+        );
+        bls_add_public_key_to_vec(
+            &mut pubs,
+            bls_get_public_key(bls_get_secret_key_from_vec(&secs, 2).as_ref().unwrap())
+                .as_ref()
+                .unwrap(),
+        );
 
         let sig = bls_get_pop(sec_key.as_ref().unwrap());
         assert!(sig.is_some());
-        assert!(bls_verify_pop(sig.as_ref().unwrap(), pub_key.as_ref().unwrap()));
+        assert!(bls_verify_pop(
+            sig.as_ref().unwrap(),
+            pub_key.as_ref().unwrap()
+        ));
         let sig_s = bls_signature_serialize(32, sig.as_ref().unwrap());
         assert!(sig_s.is_some());
         let copy_sig = bls_signature_deserialize(sig_s.unwrap());
         assert!(copy_sig.is_some());
-        assert!(bls_signature_is_equal(sig.as_ref().unwrap(), copy_sig.as_ref().unwrap()));
+        assert!(bls_signature_is_equal(
+            sig.as_ref().unwrap(),
+            copy_sig.as_ref().unwrap()
+        ));
 
         let id0 = bls_id_set_int(1);
         let id1 = bls_id_set_int(3);
@@ -92,7 +119,10 @@ fn test_bls() {
 
         let msk = bls_secret_key_recover(&sec_vec, &id_vec, 3);
         assert!(msk.is_some());
-        assert!(bls_secret_key_is_equal(msk.as_ref().unwrap(), sec_key.as_ref().unwrap()));
+        assert!(bls_secret_key_is_equal(
+            msk.as_ref().unwrap(),
+            sec_key.as_ref().unwrap()
+        ));
 
         let mpk = bls_get_public_key_vec(&pubs);
         assert!(mpk.is_some());
@@ -109,12 +139,19 @@ fn test_bls() {
 
         let mpk0 = bls_public_key_recover(&pub_vec, &id_vec, 3);
         assert!(mpk0.is_some());
-        assert!(bls_public_key_is_equal(mpk0.as_ref().unwrap(), mpk.as_ref().unwrap()));
+        assert!(bls_public_key_is_equal(
+            mpk0.as_ref().unwrap(),
+            mpk.as_ref().unwrap()
+        ));
 
-        let bin = Arc::new(vec![10, 10, 10, 10, 10, 10]);
+        let bin = std::sync::Arc::new(vec![10, 10, 10, 10, 10, 10]);
         let sig = bls_sign(sec_key.as_ref().unwrap(), bin.clone());
         assert!(sig.is_some());
-        assert!(bls_verify(sig.as_ref().unwrap(), pub_key.as_ref().unwrap(), bin.clone()));
+        assert!(bls_verify(
+            sig.as_ref().unwrap(),
+            pub_key.as_ref().unwrap(),
+            bin.clone()
+        ));
 
         let sig0 = bls_sign(sec_key0.as_ref().unwrap(), bin.clone());
         let sig1 = bls_sign(sec_key1.as_ref().unwrap(), bin.clone());
@@ -128,6 +165,10 @@ fn test_bls() {
         bls_add_signature_to_vec(&mut sig_vec, sig2.as_ref().unwrap());
 
         let msign = bls_signature_recover(&sig_vec, &id_vec, 3);
-        assert!(bls_verify(msign.as_ref().unwrap(), pub_key.as_ref().unwrap(), bin.clone()));
+        assert!(bls_verify(
+            msign.as_ref().unwrap(),
+            pub_key.as_ref().unwrap(),
+            bin.clone()
+        ));
     }
 }
