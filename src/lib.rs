@@ -6,6 +6,7 @@
 //! 常用的密码学算法
 //! 包括哈希，椭圆曲线，hmac, jwt, 密码学安全的随机数生成等
 
+pub mod aes;
 #[cfg(feature = "bls")]
 pub mod bls;
 pub mod digest;
