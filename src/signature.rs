@@ -96,9 +96,10 @@ impl Rsa {
     /// 从PKCS8格式的密钥数据生成RSA签名算法对象
     ///
     /// input: PKCS8格式的密钥数据
-    pub fn fromPKCS8(input: &[u8]) -> Rsa {
-        Rsa {
-            ctx: RsaKeyPair::from_pkcs8(input).unwrap(),
+    pub fn fromPKCS8(input: &[u8]) -> Result<Rsa, String> {
+        match RsaKeyPair::from_pkcs8(input) {
+            Ok(ctx) => Ok(Rsa { ctx }),
+            Err(e) => Err(e.description_().to_string()),
         }
     }
 
