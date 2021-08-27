@@ -10,7 +10,7 @@ rust-crypto = "0.2"
 siphasher = "0.3"
 hash_value = { path = "../pi_math/hash_value" }
 ring = "0.16"
-libsecp256k1 = "0.3"
+libsecp256k1 = "0.6"
 untrusted = "0.7"
 jsonwebtoken = "7"
 serde = {version = "1.0", features = ["derive"] }
