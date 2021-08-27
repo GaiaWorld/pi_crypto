@@ -5,7 +5,7 @@ use ring::signature::{
     ECDSA_P256_SHA256_ASN1_SIGNING, ECDSA_P384_SHA384_ASN1, ECDSA_P384_SHA384_ASN1_SIGNING,
 };
 use ring::{rand, signature};
-use secp256k1::{sign, verify, Message, PublicKey, SecretKey, Signature};
+use libsecp256k1::{sign, verify, Message, PublicKey, SecretKey, Signature};
 use simple_asn1::ASN1Block;
 
 /// 基于secp256k1的签名算法对象
@@ -96,9 +96,10 @@ impl Rsa {
     /// 从PKCS8格式的密钥数据生成RSA签名算法对象
     ///
     /// input: PKCS8格式的密钥数据
-    pub fn fromPKCS8(input: &[u8]) -> Rsa {
-        Rsa {
-            ctx: RsaKeyPair::from_pkcs8(input).unwrap(),
+    pub fn fromPKCS8(input: &[u8]) -> Result<Rsa, String> {
+        match RsaKeyPair::from_pkcs8(input) {
+            Ok(ctx) => Ok(Rsa { ctx }),
+            Err(e) => Err(e.description_().to_string()),
         }
     }
 
