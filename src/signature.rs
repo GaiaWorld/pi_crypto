@@ -5,7 +5,7 @@ use ring::signature::{
     ECDSA_P256_SHA256_ASN1_SIGNING, ECDSA_P384_SHA384_ASN1, ECDSA_P384_SHA384_ASN1_SIGNING,
 };
 use ring::{rand, signature};
-use secp256k1::{sign, verify, Message, PublicKey, SecretKey, Signature};
+use libsecp256k1::{sign, verify, Message, PublicKey, SecretKey, Signature};
 use simple_asn1::ASN1Block;
 
 /// 基于secp256k1的签名算法对象
