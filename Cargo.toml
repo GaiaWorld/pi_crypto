@@ -8,7 +8,7 @@ edition = "2018"
 libc = "*"
 rust-crypto = "0.2"
 siphasher = "0.3"
-hash_value = { path = "../pi_math/hash_value" }
+hash_value = { path = "../pi_lib/hash_value" }
 ring = "0.16"
 libsecp256k1 = "0.3"
 untrusted = "0.7"
