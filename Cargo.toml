@@ -6,7 +6,7 @@ edition = "2018"
 
 [dependencies]
 libc = "*"
-rust-crypto = "0.2"
+rust-crypto = { path = "../rust-crypto" }
 siphasher = "0.3"
 hash_value = { path = "../pi_math/hash_value" }
 ring = "0.16"
