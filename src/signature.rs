@@ -1,11 +1,13 @@
 //! ecdsa, rsa 签名算法
 
+use libsecp256k1::{sign, verify, Message, PublicKey, SecretKey, Signature};
 use ring::signature::{
-    EcdsaKeyPair as EcKeyPair, KeyPair, RsaKeyPair, ECDSA_P256_SHA256_ASN1,
+    EcdsaKeyPair as EcKeyPair, KeyPair, RsaKeyPair, RsaPublicKeyComponents, ECDSA_P256_SHA256_ASN1,
     ECDSA_P256_SHA256_ASN1_SIGNING, ECDSA_P384_SHA384_ASN1, ECDSA_P384_SHA384_ASN1_SIGNING,
 };
 use ring::{rand, signature};
-use libsecp256k1::{sign, verify, Message, PublicKey, SecretKey, Signature};
+use rsa::pkcs8::DecodePublicKey;
+use rsa::{Hash, PaddingScheme, PublicKey as rsaPubkey, RsaPublicKey};
 use simple_asn1::ASN1Block;
 
 /// 基于secp256k1的签名算法对象
@@ -220,6 +222,28 @@ impl Rsa {
         } else {
             false
         }
+    }
+
+    /// 验证SHA1WithRSA签名
+    ///
+    /// msg: 签名的数据
+    /// sig: 签名
+    /// pk: 公钥
+    pub fn sha1withrsa_verify(msg: &[u8], sig: &[u8], pk: &[u8]) -> bool {
+        if let Ok(public_key) = RsaPublicKey::from_public_key_der(&pk) {
+            public_key
+                .verify(
+                    PaddingScheme::PKCS1v15Sign {
+                        hash: Option::from(Hash::SHA1),
+                    },
+                    &msg,
+                    &sig,
+                )
+                .is_ok()
+        } else {
+            false
+        }
+
     }
 }
 

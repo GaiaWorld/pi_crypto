@@ -15,6 +15,7 @@ untrusted = "0.7"
 jsonwebtoken = "7"
 serde = {version = "1.0", features = ["derive"] }
 simple_asn1 = "0.4"
+rsa = "0.6.1"
 
 [features]
 bls = []
