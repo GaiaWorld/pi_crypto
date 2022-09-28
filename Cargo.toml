@@ -8,7 +8,7 @@ edition = "2018"
 libc = "*"
 rust-crypto = { git = "http://ser.yinengyun.com:10082/tech/rust-crypto.git"}
 siphasher = "0.3"
-hash_value = { git = "https://github.com/GaiaWorld/pi_math.git" }
+hash_value = { git = "https://github.com/GaiaWorld/pi_lib.git" }
 ring = "0.16"
 libsecp256k1 = "0.6"
 untrusted = "0.7"
