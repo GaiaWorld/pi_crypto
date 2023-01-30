@@ -3,7 +3,7 @@
 //! 使用ed25519进行密钥交换，签名和验证签名
 
 use crypto::ed25519;
-use hash_value::{H256, H512};
+use pi_hash_value::{H256, H512};
 
 /// 本地和远程实体进行密钥交换
 ///
