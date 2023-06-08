@@ -3,9 +3,13 @@ name = "pi_crypto"
 version = "0.1.0"
 authors = ["yineng <dev@dev.com>"]
 edition = "2018"
+description = "pi_crypto"
+repository = "https://github.com/GaiaWorld/pi_crypto.git"
+license = "MIT OR Apache-2.0"
+keywords = ["pi", "crypto"]
 
 [dependencies]
-libc = "*"
+libc = "0.2.146"
 rust-crypto = "0.2"
 siphasher = "0.3"
 pi_hash_value = "0.1"
