@@ -15,3 +15,4 @@ pub mod hmac;
 pub mod jwt;
 pub mod random;
 pub mod signature;
+pub mod cbc;
